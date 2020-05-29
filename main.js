@@ -364,7 +364,7 @@ function setup() {
 
 function draw() {
     const oldDay = getDay();
-    time += 6000;
+    time += 6000 * timespeed;
     if (getDay() !== oldDay) {
         people.forEach(person => {
             person.refreshSchedule();
