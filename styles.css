@@ -1,0 +1,29 @@
+.styled-btn {
+    background-color: white;
+    transition: 250ms;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.styled-btn:hover {
+    background-color: lightgrey;
+}
+
+#dashboard {
+    position: absolute;
+    left: 632px;
+    top: 16px;
+}
+
+body {
+    font-family: 'Roboto Slab', serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: inherit;
+}
