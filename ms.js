@@ -54,7 +54,7 @@ function getMinute() {
 }
 
 function amPm(hours) {
-    if (hours < 11) {
+    if (hours < 12) {
         return "AM";
     }
     return "PM";
