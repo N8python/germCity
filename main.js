@@ -1,5 +1,5 @@
 const DEBUG = false;
-const timespeed = 1;
+let timespeed = 1;
 let tx = 0;
 let ty = 0;
 let scaleVal = 1;

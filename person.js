@@ -53,24 +53,56 @@ function Person({
     }
     const schedule = {
         0: { type: "nothing" },
-        7: { type: "wander" }
+        [7 * 60 + getRndInteger(10, 30)]: { type: "wander" },
+        [11 * 60 + getRndInteger(-120, 240)]: { type: "goOut", weekend: true }
     };
     if (child) {
-        schedule[8] = { type: "goToSchool" }
-        schedule[15] = { type: "headHome" }
-        schedule[Math.floor(getRndInteger(19, 23))] = { type: "nothing" };
+        schedule[8 * 60 + getRndInteger(-30, 30)] = { type: "goToSchool", weekday: true }
+        schedule[15 * 60 + getRndInteger(-30, 30)] = { type: "headHome", weekday: true }
+        schedule[Math.floor(getRndInteger(19, 23)) * 60 + getRndInteger(-30, 30)] = { type: "nothing" };
     } else {
-        schedule[9] = { type: "goToWork" }
-        schedule[17] = { type: "headHome" }
+        schedule[9 * 60 + getRndInteger(-30, 30)] = { type: "goToWork", weekday: true }
+        schedule[12 * 60 + getRndInteger(-30, 30)] = { type: "lunchBreak", weekday: true }
+        schedule[17 * 60 + getRndInteger(-30, 30)] = { type: "headHome", weekday: true }
+        schedule[15 * 60 + getRndInteger(0, 120)] = { type: "checkGroceryStore", weekend: true }
     }
     let mode = "nothing";
     let groceryTick = 0;
+    let biz;
+    let tHouse;
+    let groceryDone = false;
+    let wanderHouseTick = 0;
+    let breakOver = 13 * 60 + getRndInteger(0, 30);
     const me = {
             interpretSchedule() {
-                const item = schedule[getHour()];
-                if (item && !item.done) {
+                const item = schedule[getHour() * 60 + getMinute()];
+                let prevMode;
+                if (item && !item.done && (item.weekday ? isWeekday() : true) && (item.weekend ? !isWeekday() : true)) {
                     item.done = true;
+                    prevMode = mode;
                     mode = item.type;
+                    if (mode === "goOut") {
+                        if (Math.random() < 0.5) {
+                            mode = "visitHouse";
+                        } else {
+                            mode = "walk";
+                        }
+                    }
+                    if (mode === "walk" && Math.random() < 0.33) {
+                        this.findPath(home, roads[floor(random(roads.length))].end);
+                    } else if (mode === "walk") {
+                        mode = "wander";
+                    }
+                    if (mode === "visitHouse" && random() < 0.33) {
+                        tHouse = houses[floor(random(houses.length))];
+                        if (tHouse) {
+                            this.findPath(home, tHouse);
+                        } else {
+                            mode = "wander";
+                        }
+                    } else if (mode === "visitHouse") {
+                        mode = "wander";
+                    }
                     if (mode === "wander") {
                         let need = floor(random(25, 50));
                         if (food >= need) {
@@ -90,24 +122,49 @@ function Person({
                         target = null;
                         this.findPath(home, school);
                     }
+                    if (mode === "lunchBreak") {
+                        target = null;
+                        biz = smallBusinesses[floor(random(smallBusinesses.length))];
+                        this.findPath(work, biz)
+                    }
                     if (mode === "goToWork") {
                         target = null;
                         this.findPath(home, work);
                     }
+                    if (mode === "checkGroceryStore" && prevMode === "wander") {
+                        if (home.food === undefined && food < 100 && !groceryDone) {
+                            mode = "goToGroceryStore";
+                            this.findPath(home, groceryStore)
+                            target = home;
+                        } else if (groceryProvider && !groceryDone && (food < 0 || home.food < 400 || home.residents.some(({ food }) => food < 0))) {
+                            mode = "goToGroceryStore";
+                            this.findPath(home, groceryStore);
+                            target = home;
+                        } else {
+                            mode = "wander";
+                        }
+                    } else if (mode === "checkGroceryStore") {
+                        mode = prevMode;
+                    }
                     if (mode === "headHome") {
                         target = null;
-                        money += salary;
-                        if (home.food === undefined && food < 100) {
+                        if (work) {
+                            money += salary;
+                            if (work.lowerPriceRange) {
+                                work.money -= salary * 1 / 4;
+                            }
+                        }
+                        if (home.food === undefined && food < 100 && !groceryDone && getHour() <= 17 && isWeekday()) {
                             mode = "goToGroceryStore";
                             this.findPath(work, groceryStore)
                             target = work;
-                        } else if (groceryProvider && (food < 0 || home.food < 400 || home.residents.some(({ food }) => food < 0))) {
+                        } else if (groceryProvider && !groceryDone && getHour() <= 17 && (food < 0 || home.food < 400 || home.residents.some(({ food }) => food < 0)) && isWeekday()) {
                             mode = "goToGroceryStore";
                             this.findPath(work, groceryStore);
                             target = work;
-                        } else if (child) {
+                        } else if (child && isWeekday()) {
                             this.findPath(school, home);
-                        } else {
+                        } else if (isWeekday()) {
                             this.findPath(work, home);
                         }
                     }
@@ -129,6 +186,46 @@ function Person({
                         speed = 3;
                         if (thePath.length === 0) {
                             mode = "wanderSchool"
+                        }
+                        break;
+                    case "visitHouse":
+                        speed = 3;
+                        if (thePath.length === 0) {
+                            mode = "wanderHouse";
+                            wanderHouseTick = floor(random(240, 360));
+                        }
+                        break;
+                    case "walk":
+                        speed = 3;
+                        if (thePath.length === 0) {
+                            mode = "headHome";
+                            try {
+                                this.findPath({
+                                    x,
+                                    y
+                                }, home);
+                            } catch (e) {
+
+                            }
+                        }
+                        break;
+                    case "wanderHouse":
+                        if (tHouse) {
+                            speed = 0.3;
+                            if (!target) {
+                                target = {
+                                    x: tHouse.x + random(-tHouse.width / 2, tHouse.width / 2),
+                                    y: tHouse.y + random(-tHouse.height / 2, tHouse.height / 2)
+                                }
+                                targetTick = random(15, 60);
+                            }
+                        } else {
+                            mode = "wander";
+                        }
+                        wanderHouseTick--;
+                        if (wanderHouseTick < 1) {
+                            this.findPath(tHouse, home);
+                            mode = "headHome";
                         }
                         break;
                     case "goToWork":
@@ -156,6 +253,25 @@ function Person({
                             targetTick = random(60, 120);
                         }
                         speed = 0.3;
+                        break;
+                    case "lunchBreak":
+                        speed = 3;
+                        if (thePath.length === 0 && !target) {
+                            target = {
+                                x: biz.x + random(-biz.width / 2, biz.width / 2),
+                                y: biz.y + random(-biz.height / 2, biz.height / 2)
+                            }
+                        }
+                        if (getHour() * 60 + getMinute() === breakOver) {
+                            const price = random(biz.lowerPriceRange, biz.upperPriceRange);
+                            if (money >= price * 4) {
+                                money -= price;
+                                biz.money += price;
+                            }
+                            mode = "goToWork";
+                            this.findPath(biz, work);
+                            target = biz;
+                        }
                         break;
                     case "headHome":
                         speed = 3;
@@ -203,6 +319,7 @@ function Person({
                             groceryStore.food -= round(amtToBuy);
                             money -= cost;
                             this.findPath(groceryStore, home);
+                            groceryDone = true;
                             mode = "headHome";
                         }
                         break;
@@ -214,6 +331,7 @@ function Person({
                 Object.values(schedule).forEach(item => {
                     item.done = false;
                 })
+                groceryDone = false;
             },
             draw() {
                 if (selected && selected === this) {
@@ -307,7 +425,7 @@ function Person({
                     }
                 } else {
                     if (target && targetTick < 1) {
-                        const xDist = target.x - x;
+                        const xDist = target.x - x + 0.00001;
                         const yDist = target.y - y;
                         let direction;
                         if (xDist > 0 && yDist > 0) {
@@ -375,7 +493,8 @@ function Person({
             <p>Path: ${thePath.map(pos).join("-")}</p>
             <p>Distance to next step: ${thePath.length > 0 ? abs((x - thePath[0].x)) + abs((y - thePath[0].y)) : ""}</p>
             <p>Distance to target: ${target ? Math.hypot(target.x - x, target.y - y) : ""}</p>
-            <p>Mode: ${mode}</p>` : ""}
+            <p>Mode: ${mode}</p>
+            <p>Wander House Tick: ${wanderHouseTick}</p>` : ""}
             `
         }
 

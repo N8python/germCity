@@ -10,7 +10,7 @@ function School({
         draw() {
             fill(color);
             if (selected === this) {
-                stroke(150);
+                stroke(0, 125, 125);
                 strokeWeight(10);
             } else {
                 noStroke();

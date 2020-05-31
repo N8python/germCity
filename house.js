@@ -11,7 +11,7 @@ function House({
             fill(color);
             rectMode(CENTER);
             if (selected === this) {
-                stroke(150);
+                stroke(0, 125, 125);
                 strokeWeight(5);
             } else {
                 noStroke();

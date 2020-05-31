@@ -11,7 +11,28 @@ function ms(m) {
     const minutes = Math.floor(m / minute);
     m %= minutes;
     const seconds = floor(random(0, 60));
-    return `Day ${days + 1}, ${adjust(hours)}:${prependZero(minutes)}:${seconds !== seconds ? "00" : prependZero(seconds)} ${amPm(hours)}`
+    return `Day ${days + 1} (${dayOfTheWeek(getDay())}), ${adjust(hours)}:${prependZero(minutes)}:${seconds !== seconds ? "00" : prependZero(seconds)} ${amPm(hours)}`
+}
+
+function dayOfTheWeek(d) {
+    d %= 7;
+    return {
+        0: "Monday",
+        1: "Tuesday",
+        2: "Wednesday",
+        3: "Thursday",
+        4: "Friday",
+        5: "Saturday",
+        6: "Sunday"
+    }[d];
+}
+
+function isWeekday() {
+    const dayOfWeek = dayOfTheWeek(getDay());
+    if (dayOfWeek !== "Saturday" && dayOfWeek !== "Sunday") {
+        return true;
+    }
+    return false;
 }
 
 function getDay() {
@@ -23,6 +44,13 @@ function getHour() {
     m = time;
     m %= day;
     return Math.floor(m / hour);
+}
+
+function getMinute() {
+    m = time;
+    m %= day;
+    m %= hour;
+    return Math.floor(m / minute);
 }
 
 function amPm(hours) {

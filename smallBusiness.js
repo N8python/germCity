@@ -5,11 +5,12 @@ function SmallBusiness({
 }) {
     const name = `The ${faker.commerce.productName()} Company`;
     const residents = [];
+    let money = 0;
     return {
         draw() {
             fill(color);
             if (selected === this) {
-                stroke(150);
+                stroke(0, 125, 125);
                 strokeWeight(10);
             } else {
                 noStroke();
@@ -32,6 +33,14 @@ function SmallBusiness({
         get residents() {
             return residents;
         },
+        get money() {
+            return money;
+        },
+        set money(val) {
+            money = val;
+        },
+        lowerPriceRange: getRndInteger(5, 15),
+        upperPriceRange: getRndInteger(30, 60),
         cc() {
             const [mx, my] = getMouseCoords();
             if (mx >= x - 100 && mx <= x + 100 && my >= y - 100 && my <= y + 100 && mouseIsPressed) {
@@ -40,7 +49,8 @@ function SmallBusiness({
         },
         renderStats() {
             dashboard.innerHTML = `<h1>${name}</h1>
-            <p>Employees: ${residents.length}</p>`
+            <p>Employees: ${residents.length}</p>
+            <p>Money: $${money.toFixed(2)}</p>`
         }
     }
 }
