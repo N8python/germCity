@@ -10,13 +10,18 @@ function School({
         draw() {
             fill(color);
             if (selected === this) {
-                stroke(0, 125, 125);
-                strokeWeight(10);
-            } else {
-                noStroke();
+                drawBounds(x, y, 400, 400);
             }
-            rectMode(CENTER)
-            quad(x, y - 200, x + 200, y, x, y + 200, x - 200, y);
+            noStroke();
+            rectMode(CENTER);
+            strokeJoin(round);
+            stroke(color);
+            strokeWeight(50);
+            quad(x, y - 175, x + 175, y, x, y + 175, x - 175, y);
+            stroke(170, 246, 97);
+            strokeWeight(20);
+            line(x - 125, y - 50, x, y - 175);
+            point(x - 150, y - 25);
         },
         get x() {
             return x;

@@ -8,15 +8,17 @@ function SmallBusiness({
     let money = 0;
     return {
         draw() {
-            fill(color);
+            fill(152, 53, 252);
             if (selected === this) {
-                stroke(0, 125, 125);
-                strokeWeight(10);
-            } else {
-                noStroke();
+                drawBounds(x, y, 300, 300);
             }
+            noStroke();
             rectMode(CENTER);
-            rect(x, y, 200, 200);
+            rect(x, y, 200, 200, 30);
+            strokeWeight(20);
+            stroke(184, 98, 253)
+            point(x - 80, y - 50);
+            line(x - 80, y - 20, x - 80, y + 60)
         },
         get x() {
             return x;

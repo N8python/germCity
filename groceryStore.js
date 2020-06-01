@@ -9,16 +9,21 @@ function GroceryStore({
     return {
         draw() {
             if (selected === this) {
-                stroke(0, 125, 125);
-                strokeWeight(10);
-            } else {
-                noStroke();
+                drawBounds(x, y + 50, 450, 500)
             }
-            fill(color);
-            triangle(x, y - 200, x + 200, y + 200, x - 200, y + 200);
+            noStroke();
+            fill(227, 223, 0);
+            stroke(227, 223, 0);
+            strokeWeight(30);
+            triangle(x, y - 185, x + 185, y + 185, x - 185, y + 185);
             const percent = food / maxFood;
             fill(255, 125, 0);
-            quad(x + 200, y + 200, x + 200 - 200 * percent, y + 200 - 400 * percent, x - 200 + 200 * percent, y + 200 - 400 * percent, x - 200, y + 200);
+            stroke(255, 125, 0);
+            quad(x + 185, y + 185, x + 185 - 185 * percent, y + 185 - 185 * 2 * percent, x - 185 + 185 * percent, y + 185 - 185 * 2 * percent, x - 185, y + 185);
+            stroke(254, 250, 97);
+            strokeWeight(20);
+            line(x - 5 + 5, y - 175, x - 185 / 2 + 25 + 5 + 12.5, y - 75);
+            point(x - 185 + 115, y - 45);
             if (food < maxFood) {
                 food += 2.77777777778 * timespeed;
             } else {

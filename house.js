@@ -8,16 +8,36 @@ function House({
     let food = 0;
     return {
         draw() {
-            fill(color);
+            if (color === "red") {
+                fill(color);
+            } else if (color === "blue") {
+                fill(color);
+            }
             rectMode(CENTER);
             if (selected === this) {
-                stroke(0, 125, 125);
-                strokeWeight(5);
-            } else {
-                noStroke();
+                drawBounds(x, y, size * 2, size * 2, {
+                    strokeAmt: 5
+                });
             }
-            rect(x, y, size, size)
-            triangle(x - size / 1.5, y - size / 3, x + size / 1.5, y - size / 3, x, y - size);
+            noStroke();
+            rect(x, y, size, size, 10)
+            if (color === "red") {
+                fill(229, 50, 102);
+                stroke(229, 50, 102);
+            } else if (color === "blue") {
+                fill(53, 155, 218);
+                stroke(53, 155, 218);
+            }
+            strokeJoin(ROUND);
+            strokeWeight(5);
+            triangle(x - size / 1.75, y - size / 3, x + size / 1.75, y - size / 3, x, y - size);
+            if (color === "red") {
+                stroke(233, 124, 216);
+            } else if (color === "blue") {
+                stroke(111, 221, 251);
+            }
+            line(x - size / 2.5, y - size / 6, x - size / 2.5, y + size / 6);
+            point(x - size / 2.5, y + size / 3)
         },
         get x() {
             return x;

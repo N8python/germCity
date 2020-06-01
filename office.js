@@ -8,14 +8,16 @@ function Office({
     const residents = [];
     return {
         draw() {
-            fill(color);
+            fill(229, 74, 165);
             if (selected === this) {
-                stroke(0, 125, 125);
-                strokeWeight(10);
-            } else {
-                noStroke();
+                drawBounds(x, y, 500, 700);
             }
-            rect(x, y, 400, 600);
+            noStroke();
+            rect(x, y, 400, 600, 30);
+            stroke(236, 146, 225);
+            strokeWeight(20);
+            line(x - 170, y - 250, x - 170, y - 50);
+            point(x - 170, y - 20);
         },
         get x() {
             return x;

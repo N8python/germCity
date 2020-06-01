@@ -9,12 +9,18 @@ function ApartmentBuilding({
             rectMode(CENTER);
             fill(color);
             if (selected === this) {
-                stroke(0, 125, 125);
-                strokeWeight(10);
-            } else {
-                noStroke();
+                drawBounds(x, y, 400, 900);
             }
+            noStroke();
             rect(x, y, 300, 800, 60);
+            if (color === "red") {
+                stroke(233, 124, 216);
+            } else if (color === "blue") {
+                stroke(111, 221, 251);
+            }
+            strokeWeight(20);
+            line(x - 120, y - 350, x - 120, y - 40);
+            point(x - 120, y);
         },
         get x() {
             return x;
