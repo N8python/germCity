@@ -23,7 +23,7 @@ function GroceryStore({
             stroke(254, 250, 97);
             strokeWeight(20);
             line(x - 5 + 5, y - 175, x - 185 / 2 + 25 + 5 + 12.5, y - 75);
-            point(x - 185 + 115, y - 45);
+            point(x - 185 + 120, y - 45);
             if (food < maxFood) {
                 food += 2.77777777778 * timespeed;
             } else {
