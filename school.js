@@ -14,7 +14,7 @@ function School({
             }
             noStroke();
             rectMode(CENTER);
-            strokeJoin(round);
+            strokeJoin(ROUND);
             stroke(color);
             strokeWeight(50);
             quad(x, y - 175, x + 175, y, x, y + 175, x - 175, y);

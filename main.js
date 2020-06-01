@@ -5,6 +5,7 @@ let ty = 0;
 let scaleVal = 1;
 const houses = [];
 let time = 7 * 60 * 60 * 1000;
+let selectTick = 0;
 const timer = document.getElementById("timer");
 const office = Office({
     x: 1000,
@@ -363,6 +364,7 @@ function setup() {
 }
 
 function draw() {
+    selectTick += 0.1;
     const oldDay = getDay();
     time += 6000 * timespeed;
     if (getDay() !== oldDay) {
