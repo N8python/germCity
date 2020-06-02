@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Germ City</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link href="styles.css" rel="stylesheet">
     <script src="https://unpkg.com/tinyqueue@2.0.0/tinyqueue.min.js"></script>
@@ -16,7 +17,22 @@
 <body class="w3-padding">
     <div> <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="+">+</button>
         <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="-">-</button>
+        <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="showSC"><i class="fa fa-building"></i></button>
         <span style="margin-left: 310px;" id="timer"></span></div>
+    <div id="cityStats" class="w3-modal">
+        <div class="w3-modal-content w3-animate-zoom">
+            <div class="w3-container">
+                <span onclick="document.getElementById('cityStats').style.display='none'" class="w3-button w3-display-topright">&times;</span>
+                <h1>City Stats</h1>
+                <p id="pop">Population: 500</p>
+                <p id="avgAge">Average Age:</p>
+                <p id="avgMon">Average Money:</p>
+                <p id="avgFood">Average Food Points:</p>
+                <p id="avgSMon">Average Small Business Money: $0</p>
+                <p id="avgContent">Average Content: 50/100</p>
+            </div>
+        </div>
+    </div>
     <div id="dashboard">
     </div>
     <script src="ms.js"></script>

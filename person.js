@@ -1,10 +1,15 @@
 const pos = ({ x, y }) => `${x},${y}`;
+const alignContent = (x) => 100 / (1 + Math.exp(-0.04 * x));
 const heuristic = (a, b) => {
     return (Math.abs(a.x - b.x) + Math.abs(a.y - b.y)) / 100
 };
 
 function getRndInteger(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function getRnd(min, max) {
+    return Math.random() * (max - min) + min;
 }
 const dashboard = document.getElementById("dashboard");
 
@@ -14,9 +19,12 @@ function Person({
     home,
     child = false,
     groceryProvider = false,
-    lastName
+    lastName,
+    content = getRndInteger(-10, 10),
+    contentMomentum = getRnd(-1, 1)
 }) {
     let thePath = [];
+    let contentList = [];
     let speed = 1;
     let target;
     let targetTick = 0;
@@ -89,6 +97,10 @@ function Person({
                         }
                     }
                     if (mode === "walk" && Math.random() < 0.33) {
+                        this.createEvent({
+                            magnitude: random(0.05, 0.1),
+                            length: 1
+                        });
                         this.findPath(home, roads[floor(random(roads.length))].end);
                     } else if (mode === "walk") {
                         mode = "wander";
@@ -96,6 +108,20 @@ function Person({
                     if (mode === "visitHouse" && random() < 0.33) {
                         tHouse = houses[floor(random(houses.length))];
                         if (tHouse) {
+                            this.createEventFromMap({
+                                0.7: {
+                                    magnitude: random(-0.05, 0.1),
+                                    length: 1
+                                },
+                                0.9: {
+                                    magnitude: random(0.1, 0.2),
+                                    length: 1
+                                },
+                                1: {
+                                    magnitude: random(-0.1, -0.3),
+                                    length: 2
+                                }
+                            });
                             this.findPath(home, tHouse);
                         } else {
                             mode = "wander";
@@ -104,6 +130,24 @@ function Person({
                         mode = "wander";
                     }
                     if (mode === "wander") {
+                        this.createEventFromMap({
+                            0.8: {
+                                magnitude: random(0.3, -0.1),
+                                length: 1
+                            },
+                            0.9: {
+                                magnitude: random(0.5, 0.25),
+                                length: 1
+                            },
+                            0.95: {
+                                magnitude: random(-0.1, -0.3),
+                                length: 2
+                            },
+                            1: {
+                                magnitude: random(0.6, 0.3),
+                                length: 2
+                            }
+                        });
                         let need = floor(random(25, 50));
                         if (food >= need) {
                             food -= need;
@@ -125,7 +169,21 @@ function Person({
                     if (mode === "lunchBreak") {
                         target = null;
                         biz = smallBusinesses[floor(random(smallBusinesses.length))];
-                        this.findPath(work, biz)
+                        this.findPath(work, biz);
+                        this.createEventFromMap({
+                            0.75: {
+                                magnitude: random(0.1, 0.3),
+                                length: 1
+                            },
+                            0.9: {
+                                magnitude: random(-0.1, -0.3),
+                                length: 1
+                            },
+                            1: {
+                                magnitude: random(-0.3, -0.7),
+                                length: 2
+                            }
+                        })
                     }
                     if (mode === "goToWork") {
                         target = null;
@@ -185,6 +243,24 @@ function Person({
                     case "goToSchool":
                         speed = 3;
                         if (thePath.length === 0) {
+                            this.createEventFromMap({
+                                0.4: {
+                                    magnitude: random(-0.05, 0.05),
+                                    length: 1
+                                },
+                                0.8: {
+                                    magnitude: random(-0.1, 0.1),
+                                    length: 1
+                                },
+                                0.9: {
+                                    magnitude: random(0.1, 0.5),
+                                    length: 2
+                                },
+                                1: {
+                                    magnitude: random(-0.1, -0.5),
+                                    length: 2
+                                }
+                            })
                             mode = "wanderSchool"
                         }
                         break;
@@ -231,6 +307,24 @@ function Person({
                     case "goToWork":
                         speed = 3;
                         if (thePath.length === 0) {
+                            this.createEventFromMap({
+                                0.4: {
+                                    magnitude: random(-0.05, 0.05),
+                                    length: 1
+                                },
+                                0.8: {
+                                    magnitude: random(-0.1, 0.1),
+                                    length: 1
+                                },
+                                0.9: {
+                                    magnitude: random(0.1, 0.5),
+                                    length: 2
+                                },
+                                1: {
+                                    magnitude: random(-0.1, -0.5),
+                                    length: 2
+                                }
+                            });
                             mode = "wanderWork"
                         }
                         break;
@@ -333,6 +427,47 @@ function Person({
                 })
                 groceryDone = false;
             },
+            handleContent() {
+                contentList.forEach(cl => {
+                    const change = cl.pop();
+                    contentMomentum += change;
+                })
+                contentList.forEach((cl, i) => {
+                    if (cl.length === 0) {
+                        contentList.splice(i, 1);
+                    }
+                })
+            },
+            createEvent({
+                magnitude,
+                length = 1
+            } = {}) {
+                const init = magnitude * random(0.75, 1.25);
+                const decrease = 1 - 1 / (length * 1.5);
+                const list = [];
+                let curr = init;
+                for (let i = 0; i < length - 1; i++) {
+                    curr *= decrease * random(0.5, 1.5)
+                    list.push(curr);
+                }
+                this.addContentList([init, ...list]);
+            },
+            createEventFromMap(map) {
+                const rnd = Math.random();
+                for (const [thresh, data] of Object.entries(map).sort(([t1], [t2]) => t1 - t2)) {
+                    if (rnd < thresh) {
+                        this.createEvent(data);
+                        return;
+                    }
+                }
+            },
+            addContentList(cl) {
+                const init = cl.pop();
+                contentMomentum += init;
+                if (cl.length !== 0) {
+                    contentList.push(cl);
+                }
+            },
             draw() {
                 if (selected && selected === this) {
                     fill(180);
@@ -401,6 +536,8 @@ function Person({
                 return path;
             },
             move() {
+                content += contentMomentum;
+                contentMomentum *= 0.9;
                 const revisedSpeed = speed * timespeed;
                 if (thePath.length > 0 && !target) {
                     if (abs((x - thePath[0].x)) + abs((y - thePath[0].y)) <= 1.5 * revisedSpeed) {
@@ -476,6 +613,9 @@ function Person({
             get food() {
                 return food;
             },
+            get content() {
+                return alignContent(content);
+            },
             cc() {
                 const [mx, my] = getMouseCoords();
                 if (dist(x, y, mx, my) < 10 && mouseIsPressed) {
@@ -488,13 +628,15 @@ function Person({
             <h1>${name}</h1>
             <p>Age: ${age}</p>
             <p>Food: ${food}</p>
+            <p>Content: ${alignContent(content).toFixed(2)}/100</p>
             ${ !child ? `<p>Money: $${money.toFixed(2)}</p>` : ""}
             ${DEBUG ? `
             <p>Path: ${thePath.map(pos).join("-")}</p>
             <p>Distance to next step: ${thePath.length > 0 ? abs((x - thePath[0].x)) + abs((y - thePath[0].y)) : ""}</p>
             <p>Distance to target: ${target ? Math.hypot(target.x - x, target.y - y) : ""}</p>
             <p>Mode: ${mode}</p>
-            <p>Wander House Tick: ${wanderHouseTick}</p>` : ""}
+            <p>Wander House Tick: ${wanderHouseTick}</p>
+            <p>Content Lists: ${JSON.stringify(contentList, undefined, 4)}</p>` : ""}
             `
         }
 

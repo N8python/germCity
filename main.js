@@ -1,4 +1,4 @@
-const DEBUG = false;
+const DEBUG = true;
 let timespeed = 1;
 let tx = 0;
 let ty = 0;
@@ -367,9 +367,16 @@ function draw() {
     selectTick += 0.1;
     const oldDay = getDay();
     time += 6000 * timespeed;
+    document.getElementById("pop").innerHTML = `Population: ${people.length}`;
+    document.getElementById("avgAge").innerHTML = `Average Age: ${(people.map(person => person.age).reduce((t, v) => t + v) / people.length).toFixed(3)}`;
+    document.getElementById("avgMon").innerHTML = `Average Money: $${(people.filter(person => person.money !== undefined).map(person => person.money).reduce((t, v) => t + v) / people.length).toFixed(2)}`;
+    document.getElementById("avgSMon").innerHTML = `Average Small Business Money: $${(smallBusinesses.map(biz => biz.money).reduce((t, v) => t + v) / smallBusinesses.length).toFixed(2)}`;
+    document.getElementById("avgFood").innerHTML = `Average Food Points Per Person: ${(people.map(person => person.food).reduce((t, v) => t + v) / people.length).toFixed(3)}`;
+    document.getElementById("avgContent").innerHTML = `Average Content: ${(people.map(person => person.content).reduce((t, v) => t + v) / people.length).toFixed(3)}/100`;
     if (getDay() !== oldDay) {
         people.forEach(person => {
             person.refreshSchedule();
+            person.handleContent();
         });
     }
     timer.innerHTML = ms(time)
@@ -429,4 +436,7 @@ document.getElementById("+").onclick = () => {
 }
 document.getElementById("-").onclick = () => {
     scaleVal /= 1.5;
+}
+document.getElementById("showSC").onclick = () => {
+    document.getElementById('cityStats').style.display = 'block';
 }
