@@ -1,4 +1,4 @@
-const DEBUG = true;
+const DEBUG = false;
 let timespeed = 1;
 let tx = 0;
 let ty = 0;
