@@ -36,7 +36,7 @@ function Office({
         },
         cc() {
             const [mx, my] = getMouseCoords();
-            if (mx >= x - 200 && mx <= x + 200 && my >= y - 300 && my <= y + 300 && mouseIsPressed) {
+            if (mouseInBounds() && mx >= x - 200 && mx <= x + 200 && my >= y - 300 && my <= y + 300 && mouseIsPressed) {
                 selected = this;
             }
         },

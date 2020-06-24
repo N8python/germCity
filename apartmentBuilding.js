@@ -36,7 +36,7 @@ function ApartmentBuilding({
         },
         cc() {
             const [mx, my] = getMouseCoords();
-            if (mx >= x - 150 && mx <= x + 150 && my >= y - 400 && my <= y + 400 && mouseIsPressed) {
+            if (mouseInBounds() && mx >= x - 150 && mx <= x + 150 && my >= y - 400 && my <= y + 400 && mouseIsPressed) {
                 selected = this;
             }
         },

@@ -45,7 +45,7 @@ function SmallBusiness({
         upperPriceRange: getRndInteger(30, 60),
         cc() {
             const [mx, my] = getMouseCoords();
-            if (mx >= x - 100 && mx <= x + 100 && my >= y - 100 && my <= y + 100 && mouseIsPressed) {
+            if (mouseInBounds() && mx >= x - 100 && mx <= x + 100 && my >= y - 100 && my <= y + 100 && mouseIsPressed) {
                 selected = this;
             }
         },

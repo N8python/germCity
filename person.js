@@ -21,14 +21,20 @@ function Person({
     groceryProvider = false,
     lastName,
     content = getRndInteger(-10, 10),
-    contentMomentum = getRnd(-1, 1)
+    contentMomentum = getRnd(-1, 1),
+    infected = -3,
+    family = []
 }) {
     let thePath = [];
     let contentList = [];
     let speed = 1;
     let target;
     let targetTick = 0;
+    let contagious = false;
     let food = 0;
+    let conTimer;
+    let stageTimer;
+    let hospitalRoom;
     const name = lastName ? faker.name.firstName() + " " + lastName : faker.name.findName();
     const age = child ? getRndInteger(5, 18) : getRndInteger(19, 80);
     let groceryStore;
@@ -37,6 +43,7 @@ function Person({
     } else {
         groceryStore = groceryStores[1];
     }
+    const hygieneChance = getRnd(0.00025, 0.001);
     let school;
     if (child) {
         if (age < 11) {
@@ -50,10 +57,18 @@ function Person({
     let work;
     let money;
     let salary;
+    let sickState = 0;
+    let ventilator = 0;
     if (!child) {
-        work = (Math.random() < 0.65) ? smallBusinesses[Math.floor(Math.random() * smallBusinesses.length)] : office;
+        if (Math.random() < 0.95) {
+            work = (Math.random() < 0.65) ? smallBusinesses[Math.floor(Math.random() * smallBusinesses.length)] : office;
+        } else {
+            work = hospital;
+        }
         if (work === office) {
             salary = getRndInteger(Math.floor(125 * 1.25), Math.floor(125 * 2));
+        } else if (work === hospital) {
+            salary = getRndInteger(Math.floor(125 * 2), Math.floor(125 * 4));
         } else {
             salary = getRndInteger(Math.floor(125 * 0.5), Math.floor(125 * 1.5));
         }
@@ -70,7 +85,9 @@ function Person({
         schedule[Math.floor(getRndInteger(19, 23)) * 60 + getRndInteger(-30, 30)] = { type: "nothing" };
     } else {
         schedule[9 * 60 + getRndInteger(-30, 30)] = { type: "goToWork", weekday: true }
-        schedule[12 * 60 + getRndInteger(-30, 30)] = { type: "lunchBreak", weekday: true }
+        if (work !== hospital) {
+            schedule[12 * 60 + getRndInteger(-30, 30)] = { type: "lunchBreak", weekday: true }
+        }
         schedule[17 * 60 + getRndInteger(-30, 30)] = { type: "headHome", weekday: true }
         schedule[15 * 60 + getRndInteger(0, 120)] = { type: "checkGroceryStore", weekend: true }
     }
@@ -81,11 +98,12 @@ function Person({
     let groceryDone = false;
     let wanderHouseTick = 0;
     let breakOver = 13 * 60 + getRndInteger(0, 30);
+    let sayAtHomeForRestOfDay = false;
     const me = {
             interpretSchedule() {
                 const item = schedule[getHour() * 60 + getMinute()];
                 let prevMode;
-                if (item && !item.done && (item.weekday ? isWeekday() : true) && (item.weekend ? !isWeekday() : true)) {
+                if (item && mode !== "goToHospital" && mode !== "wanderHospital" && mode !== "headHomeHospital" && !item.done && (item.weekday ? isWeekday() : true) && (item.weekend ? !isWeekday() : true) && this.isSickCompatible(item.type)) {
                     item.done = true;
                     prevMode = mode;
                     mode = item.type;
@@ -236,7 +254,7 @@ function Person({
                                 x: home.x + random(-home.width / 2, home.width / 2),
                                 y: home.y + random(-home.height / 2, home.height / 2)
                             }
-                            targetTick = random(15, 60);
+                            targetTick = random(15, 60) / timespeed;
                         }
                         speed = 0.3;
                         break;
@@ -261,14 +279,14 @@ function Person({
                                     length: 2
                                 }
                             })
-                            mode = "wanderSchool"
+                            mode = "wanderSchool";
                         }
                         break;
                     case "visitHouse":
                         speed = 3;
                         if (thePath.length === 0) {
                             mode = "wanderHouse";
-                            wanderHouseTick = floor(random(240, 360));
+                            wanderHouseTick = floor(random(240, 360)) / timespeed;
                         }
                         break;
                     case "walk":
@@ -293,7 +311,7 @@ function Person({
                                     x: tHouse.x + random(-tHouse.width / 2, tHouse.width / 2),
                                     y: tHouse.y + random(-tHouse.height / 2, tHouse.height / 2)
                                 }
-                                targetTick = random(15, 60);
+                                targetTick = random(15, 60) / timespeed;
                             }
                         } else {
                             mode = "wander";
@@ -334,7 +352,7 @@ function Person({
                                 x: school.x + random(-100, 100),
                                 y: school.y + random(-100, 100)
                             }
-                            targetTick = random(60, 120);
+                            targetTick = random(60, 120) / timespeed;
                         }
                         speed = 0.3;
                         break;
@@ -344,7 +362,7 @@ function Person({
                                 x: work.x + random(-work.width / 2, work.width / 2),
                                 y: work.y + random(-work.height / 2, work.height / 2)
                             }
-                            targetTick = random(60, 120);
+                            targetTick = random(60, 120) / timespeed;
                         }
                         speed = 0.3;
                         break;
@@ -382,7 +400,7 @@ function Person({
                         speed = 3;
                         if (thePath.length === 0) {
                             mode = "wanderGroceryStore";
-                            groceryTick = 240;
+                            groceryTick = 240 / timespeed;
                         }
                         break;
                     case "wanderGroceryStore":
@@ -417,6 +435,35 @@ function Person({
                             mode = "headHome";
                         }
                         break;
+                    case "goToHospital":
+                        speed = 3;
+                        if (thePath.length === 0) {
+                            if (hospital.canCheckIn()) {
+                                hospitalRoom = hospital.checkIn(this);
+                                mode = "wanderHospital"
+                            } else {
+                                this.findPath(hospital, home);
+                                mode = "headHomeHospital";
+                            }
+                        }
+                        break;
+                    case "wanderHospital":
+                        if (!target && disease.phases[infected].symptoms !== "ards") {
+                            target = {
+                                x: hospital.x - 200 + hospitalRoom[0] + random(100),
+                                y: hospital.y - 200 + hospitalRoom[1] + random(100)
+                            }
+                            targetTick = random(60, 120) / timespeed;
+                        }
+                        speed = 0.3;
+                        break;
+                    case "headHomeHospital":
+                        speed = 3;
+                        if (thePath.length === 0) {
+                            sayAtHomeForRestOfDay = true;
+                            mode = "wander";
+                        }
+                        break;
                     default:
                         break;
                 }
@@ -426,6 +473,10 @@ function Person({
                     item.done = false;
                 })
                 groceryDone = false;
+                sayAtHomeForRestOfDay = false;
+                if (sickState === 1) {
+                    sickState = 2;
+                }
             },
             handleContent() {
                 contentList.forEach(cl => {
@@ -469,13 +520,32 @@ function Person({
                 }
             },
             draw() {
-                if (selected && selected === this) {
-                    fill(180);
+                let color;
+                if (infected === -4) {
+                    color = [125, 255, 125]
+                } else if (infected === -3) {
+                    color = [255, 255, 255];
+                } else if (infected === -2) {
+                    color = [255, 255, 125]
+                } else if (infected === -1) {
+                    color = [255, 160, 160]
+                } else if (infected > -1) {
+                    color = [175, 100, 175]
                 } else {
-                    fill(255)
+                    color = [255, 255, 255];
+                }
+                if (selected && selected === this) {
+                    fill(...color.map(x => x * 0.71));
+                } else {
+                    fill(...color)
                 }
                 noStroke();
                 ellipse(x, y, 10, 10);
+                if (ventilator) {
+                    textAlign(CENTER);
+                    text("V", x, y);
+                    rect(x, y - 10, 12, 5);
+                }
                 targetTick--;
             },
             findPath(start, end) {
@@ -613,12 +683,166 @@ function Person({
             get food() {
                 return food;
             },
+            get infected() {
+                return infected;
+            },
+            set infected(val) {
+                infected = val;
+                if (val === -1) {
+                    stageTimer = random(...disease.incubation.range) * day;
+                    conTimer = stageTimer + (random(...disease.incubation.contagiousnessBegins) * day);
+                }
+            },
+            get family() {
+                return family;
+            },
+            set family(val) {
+                family = val;
+            },
+            get hospitalNum() {
+                return hospitalRoom[2];
+            },
+            imcon() {
+                conTimer = 0;
+            },
+            isSickCompatible(_item) {
+                if (sickState === 2 || sayAtHomeForRestOfDay) {
+                    if (_item === "wander" || _item === "nothing") {
+                        return true;
+                    }
+                    return false;
+                }
+                return true;
+            },
+            toggleVentilator() {
+                ventilator = +!ventilator;
+            },
+            get usingVentilator() {
+                return !!ventilator;
+            },
+            diseaseTick() {
+                if (conTimer !== undefined) {
+                    conTimer -= 6000 * timespeed;
+                }
+                if (stageTimer !== undefined) {
+                    stageTimer -= 6000 * timespeed;
+                }
+                if (conTimer < 0 && infected !== -4) {
+                    contagious = true;
+                }
+                if (stageTimer < 0 && infected !== -4) {
+                    if (infected < 0) {
+                        sickState = 1;
+                        infected = 0;
+                        stageTimer = random(...disease.phases[infected].range) * day;
+                    } else {
+                        const num = Math.max(0, Math.min(1, randomGaussian(disease.phases[infected].progressionFunc(age), 0.5)));
+                        let newPhase;
+                        Object.entries(disease.phases[infected].next).some(([stage, thresh]) => {
+                            if (num <= thresh) {
+                                newPhase = stage;
+                                return true;
+                            }
+                        })
+                        if (newPhase === "resolve") {
+                            infected = -4;
+                            contagious = false;
+                            sickState = 0;
+                        } else {
+                            let mortality = disease.phases[infected].mortalityRate / 100;
+                            const _x = hospital.doctorsToPatientsRatio();
+                            if (disease.phases[infected].symptoms === "pneumonia" && mode === "wanderHospital") {
+                                mortality *= (0.8 / (1 + Math.exp(5 * _x - 2))) + 0.2;
+                            }
+                            if (disease.phases[infected].symptoms === "ards" && mode === "wanderHospital") {
+                                mortality *= 0.84;
+                                if (ventilator) {
+                                    mortality *= (0.6 / (1 + Math.exp(7 * _x - 2))) + 0.4;
+                                }
+                            }
+                            //console.log(disease.phases[infected].symptoms, mortality);
+                            if (Math.random() <= mortality) {
+                                people.splice(people.indexOf(this), 1);
+                                if (mode === "wanderHospital") {
+                                    hospital.checkOut(this);
+                                }
+                                if (ventilator) {
+                                    hospital.returnVentilator(this);
+                                }
+                                skulls.push({
+                                    x: x - 15,
+                                    y: y - 15
+                                })
+                            } else {
+                                infected = newPhase;
+                                if (disease.phases[infected].symptoms !== "ards") {
+                                    if (ventilator) {
+                                        hospital.returnVentilator(this);
+                                    }
+                                }
+                                if (infected > -1) {
+                                    stageTimer = random(...disease.phases[infected].range) * day;
+                                }
+                            }
+                        }
+                        //console.log(newPhase);
+                    }
+                    if (infected > -1 && disease.phases[infected].symptoms === "pneumonia") {
+                        mode = "goToHospital";
+                        target = null;
+                        this.findPath(home, hospital);
+                    }
+                    if (infected > -1 && people.includes(this) && disease.phases[infected].symptoms === "ards") {
+                        if (hospital.canTakeVentilator()) {
+                            hospital.takeVentilator(this);
+                        }
+                    }
+                    if (infected === -4 && mode === "wanderHospital") {
+                        mode = "headHomeHospital";
+                        target = null;
+                        this.findPath(hospital, home);
+                        hospital.checkOut(this);
+                        hospitalRoom = undefined;
+                        if (ventilator) {
+                            hospital.returnVentilator(this);
+                        }
+                    }
+                }
+                if (infected === -2) {
+                    if (Math.random() < hygieneChance * timespeed) {
+                        this.infected = -3;
+                    } else if (Math.random() < disease.exposureToCaseChance * timespeed) {
+                        this.infected = -1;
+                    }
+                }
+                if (contagious && infected > -2) {
+                    const range = infected < 0 ? disease.initContagiousRange : disease.phases[infected].contagiousRange;
+                    const chance = infected < 0 ? disease.initContagiousness * timespeed : disease.phases[infected].contagiousness * timespeed;
+                    if (sickState === 2 && (mode === "nothing" || mode === "wander")) {
+                        family.forEach(person => {
+                            if (dist(x, y, person.x, person.y) < range && person.infected === -3) {
+                                if (Math.random() < chance) {
+                                    person.infected = -2;
+                                }
+                            }
+                        })
+                    } else {
+                        people.forEach(person => {
+                            if (dist(x, y, person.x, person.y) < range && person.infected === -3) {
+                                if (Math.random() < chance) {
+                                    person.infected = -2;
+                                }
+                            }
+                        })
+                    }
+                }
+            },
             get content() {
                 return alignContent(content);
             },
             cc() {
                 const [mx, my] = getMouseCoords();
-                if (dist(x, y, mx, my) < 10 && mouseIsPressed) {
+                if (mouseInBounds() && dist(x, y, mx, my) < 10 && mouseIsPressed) {
                     //this.renderStats();
                     selected = this;
                 }
@@ -629,6 +853,7 @@ function Person({
             <p>Age: ${age}</p>
             <p>Food: ${food}</p>
             <p>Content: ${alignContent(content).toFixed(2)}/100</p>
+            <p>Contagious: ${contagious}</p>
             ${ !child ? `<p>Money: $${money.toFixed(2)}</p>` : ""}
             ${DEBUG ? `
             <p>Path: ${thePath.map(pos).join("-")}</p>
@@ -636,7 +861,11 @@ function Person({
             <p>Distance to target: ${target ? Math.hypot(target.x - x, target.y - y) : ""}</p>
             <p>Mode: ${mode}</p>
             <p>Wander House Tick: ${wanderHouseTick}</p>
-            <p>Content Lists: ${JSON.stringify(contentList, undefined, 4)}</p>` : ""}
+            <p>Content Lists: ${JSON.stringify(contentList, undefined, 4)}</p>
+            <p>Contagious Timer: ${conTimer}</p>
+            <p>Stage Timer: ${stageTimer}</p>
+            <p>Infected: ${infected}</p>
+            <p>Sick State: ${sickState}</p>` : ""}
             `
         }
 

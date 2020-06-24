@@ -44,7 +44,7 @@ function GroceryStore({
         },
         cc() {
             const [mx, my] = getMouseCoords();
-            if (mx >= x - 200 && mx <= x + 200 && my >= y - 200 && my <= y + 200 && mouseIsPressed) {
+            if (mouseInBounds() && mx >= x - 200 && mx <= x + 200 && my >= y - 200 && my <= y + 200 && mouseIsPressed) {
                 selected = this;
             }
         },

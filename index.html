@@ -18,13 +18,21 @@
     <div> <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="+">+</button>
         <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="-">-</button>
         <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="showSC"><i class="fa fa-building"></i></button>
-        <span style="margin-left: 310px;" id="timer"></span></div>
+        <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="patientZero">0</button>
+        <input id="tx" type="range" value="1" min="1" max="101">
+        <span id="timeMult">1.00x</span>
+        <span style="margin-left: 50px;" id="timer"></span></div>
     <div id="cityStats" class="w3-modal">
         <div class="w3-modal-content w3-animate-zoom">
             <div class="w3-container">
                 <span onclick="document.getElementById('cityStats').style.display='none'" class="w3-button w3-display-topright">&times;</span>
                 <h1>City Stats</h1>
                 <p id="pop">Population: 500</p>
+                <p id="susceptible">Susceptible: 0</p>
+                <p id="exposed">Exposed: 0</p>
+                <p id="infected">Infected: 0</p>
+                <p id="recovered">Recovered: 0</p>
+                <p id="dead">Dead: 0</p>
                 <p id="avgAge">Average Age:</p>
                 <p id="avgMon">Average Money:</p>
                 <p id="avgFood">Average Food Points:</p>
@@ -36,13 +44,15 @@
     <div id="dashboard">
 
     </div>
-    <a href="https://clustrmaps.com/site/1b96b" title="Visit tracker" hidden><img src="//www.clustrmaps.com/map_v2.png?d=p1HJKSolDg5zEJonekQ9JR5IAVj_MJ0v0iDTMofbsCA&cl=ffffff"></a>
+    <!--<a href="https://clustrmaps.com/site/1b96b" title="Visit tracker" hidden><img src="//www.clustrmaps.com/map_v2.png?d=p1HJKSolDg5zEJonekQ9JR5IAVj_MJ0v0iDTMofbsCA&cl=ffffff"></a>-->
     <script src="ms.js"></script>
+    <script src="diseaseModel.js"></script>
     <script src="mouse.js"></script>
     <script src="house.js"></script>
     <script src="school.js"></script>
     <script src="smallBusiness.js"></script>
     <script src="office.js"></script>
+    <script src="hospital.js"></script>
     <script src="apartmentBuilding.js"></script>
     <script src="groceryStore.js"></script>
     <script src="road.js"></script>

@@ -59,7 +59,7 @@ function House({
         },
         cc() {
             const [mx, my] = getMouseCoords();
-            if (mx >= (x - size / 2) && my >= (y - (size / 2 + size / 3)) && mx < x + size / 2 && my < y + size / 2 && mouseIsPressed) {
+            if (mouseInBounds() && mx >= (x - size / 2) && my >= (y - (size / 2 + size / 3)) && mx < x + size / 2 && my < y + size / 2 && mouseIsPressed) {
                 selected = this;
             }
         },
