@@ -1,4 +1,4 @@
-const DEBUG = true;
+const DEBUG = false;
 let timespeed = 5;
 let tx = 0;
 let ty = 0;
@@ -406,10 +406,94 @@ function setup() {
 let targetTx;
 let targetTy;
 let targetScale;
+let hoursPassed = 7;
+let history = [{
+    susceptible: 499,
+    infected: 1,
+    recovered: 0,
+    dead: 0,
+    totalCases: 1
+}];
+const diseaseChart = document.getElementById("diseaseChart");
+let theChart;
+
+function renderLineChart() {
+    theChart = new Chart(diseaseChart, {
+        type: "line",
+        data: {
+            labels: Object.keys(history).map(idx => idx / 2 + " Days"),
+            datasets: [{
+                data: history.map(x => x.susceptible),
+                label: "Susceptible",
+                fill: false,
+                borderColor: "#3e95cd"
+            }, {
+                data: history.map(x => x.infected),
+                label: "Infected",
+                fill: false,
+                borderColor: "#c45850"
+            }, {
+                data: history.map(x => x.recovered),
+                label: "Recovered",
+                fill: false,
+                borderColor: "#3cba9f"
+            }, {
+                data: history.map(x => x.dead),
+                label: "Dead",
+                fill: false,
+                borderColor: "#520707"
+            }, {
+                data: history.map(x => x.totalCases),
+                label: "Total Cases",
+                fill: false,
+                borderColor: "#e8c3b9"
+            }]
+        },
+        options: {
+            title: {
+                display: true,
+                text: "History of the Outbreak"
+            }
+        }
+    });
+}
+
+function updateLineChart({
+    susceptible,
+    infected,
+    recovered,
+    dead,
+    totalCases
+}) {
+    theChart.data.labels.push((history.length - 1) / 2 + " Days");
+    theChart.data.datasets.forEach(dataset => {
+        switch (dataset.label) {
+            case "Susceptible":
+                dataset.data.push(susceptible);
+                break;
+            case "Infected":
+                dataset.data.push(infected);
+                break;
+            case "Recovered":
+                dataset.data.push(recovered);
+                break;
+            case "Dead":
+                dataset.data.push(dead);
+                break;
+            case "Total Cases":
+                dataset.data.push(totalCases);
+                break;
+        }
+    })
+    theChart.update();
+}
+renderLineChart();
+let doneWithSimulation = false;
 
 function draw() {
     selectTick += 0.1;
     const oldDay = getDay();
+    const oldHour = getHour();
     time += 6000 * timespeed;
     document.getElementById("pop").innerHTML = `Population: ${people.length}`;
     document.getElementById("recovered").innerHTML = `Recovered: ${people.filter(({infected}) => infected === -4).length}`;
@@ -422,7 +506,7 @@ function draw() {
     document.getElementById("avgMon").innerHTML = `Average Money: $${(people.filter(person => person.money !== undefined).map(person => person.money).reduce((t, v) => t + v) / people.length).toFixed(2)}`;
     document.getElementById("avgSMon").innerHTML = `Average Small Business Money: $${(smallBusinesses.map(biz => biz.money).reduce((t, v) => t + v) / smallBusinesses.length).toFixed(2)}`;
     document.getElementById("avgFood").innerHTML = `Average Food Points Per Person: ${(people.map(person => person.food).reduce((t, v) => t + v) / people.length).toFixed(3)}`;
-    document.getElementById("avgContent").innerHTML = `Average Content: ${(people.map(person => person.content).reduce((t, v) => t + v) / people.length).toFixed(3)}/100`;
+    document.getElementById("avgContent").innerHTML = `Average Content: ${(people.filter(person => !Number.isNaN(person.content)).map(person => person.content).reduce((t, v) => t + v) / people.length).toFixed(3)}/100`;
     timespeed = 1 + 0.04 * (document.getElementById("tx").value - 1);
     document.getElementById("timeMult").innerHTML = `${timespeed.toFixed(2)}x`;
     if (getDay() !== oldDay) {
@@ -430,6 +514,24 @@ function draw() {
             person.refreshSchedule();
             person.handleContent();
         });
+    }
+    if (getHour() !== oldHour) {
+        hoursPassed++;
+    }
+    if (hoursPassed === 12 && !doneWithSimulation) {
+        hoursPassed = 0;
+        const record = {
+            susceptible: people.filter(({ infected }) => infected === -3 || infected === -2).length,
+            infected: people.filter(({ infected }) => infected > -2).length,
+            recovered: people.filter(({ infected }) => infected === -4).length,
+            dead: 500 - people.length,
+            totalCases: 500 - people.filter(({ infected }) => infected === -3 || infected === -2).length
+        };
+        if (record.infected === 0) {
+            doneWithSimulation = true;
+        }
+        history.push(record)
+        updateLineChart(record);
     }
     timer.innerHTML = ms(time)
     background(200);
@@ -481,6 +583,7 @@ function draw() {
     office.cc();
     hospital.draw();
     hospital.cc();
+    hospital.autoReturnVentilators();
     skulls.forEach(({ x, y }) => {
         fill(125);
         noStroke();
@@ -541,4 +644,14 @@ document.getElementById("patientZero").onclick = () => {
     targetTx = -patientZero.x + 300;
     targetTy = -patientZero.y + 300;
     targetScale = 1;
+}
+const listStats = document.getElementById("listStats");
+const chartStats = document.getElementById("chartStats");
+document.getElementById("showListStats").onclick = () => {
+    listStats.removeAttribute("hidden");
+    chartStats.setAttribute("hidden", "true");
+}
+document.getElementById("showChartStats").onclick = () => {
+    chartStats.removeAttribute("hidden");
+    listStats.setAttribute("hidden", "true");
 }

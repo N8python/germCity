@@ -34,6 +34,7 @@ function ApartmentBuilding({
         get height() {
             return 800;
         },
+        isApartmentBuilding: true,
         cc() {
             const [mx, my] = getMouseCoords();
             if (mouseInBounds() && mx >= x - 150 && mx <= x + 150 && my >= y - 400 && my <= y + 400 && mouseIsPressed) {

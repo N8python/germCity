@@ -20,7 +20,7 @@ function Person({
     child = false,
     groceryProvider = false,
     lastName,
-    content = getRndInteger(-10, 10),
+    content = getRndInteger(90, 100),
     contentMomentum = getRnd(-1, 1),
     infected = -3,
     family = []
@@ -477,11 +477,37 @@ function Person({
                 if (sickState === 1) {
                     sickState = 2;
                 }
+                if (infected > -1) {
+                    const { symptoms, recovery } = disease.phases[infected];
+                    let mag;
+                    if (recovery) {
+                        mag = random(0.3, 0.6) * max(0.98 ** (this.content - 70) - 1, 0.5);
+                    } else {
+                        if (symptoms === "mild respiratory") {
+                            mag = random(-0.1, -0.3);
+                        }
+                        if (symptoms === "moderate respiratory") {
+                            mag = random(-0.2, -0.4);
+                        }
+                        if (symptoms === "pneumonia") {
+                            mag = random(-0.3, -0.6);
+                        }
+                        if (symptoms === "ards") {
+                            mag = random(-0.6, -1);
+                        }
+                    }
+                    this.createEvent({
+                        magnitude: mag,
+                        length: 1
+                    });
+                }
             },
             handleContent() {
                 contentList.forEach(cl => {
                     const change = cl.pop();
-                    contentMomentum += change;
+                    if (typeof change === "number" && change === change) {
+                        contentMomentum += change;
+                    }
                 })
                 contentList.forEach((cl, i) => {
                     if (cl.length === 0) {
@@ -498,10 +524,11 @@ function Person({
                 const list = [];
                 let curr = init;
                 for (let i = 0; i < length - 1; i++) {
-                    curr *= decrease * random(0.5, 1.5)
+                    curr *= decrease * random(0.5, 1.5);
                     list.push(curr);
                 }
-                this.addContentList([init, ...list]);
+                const final = [init, ...list];
+                this.addContentList(final);
             },
             createEventFromMap(map) {
                 const rnd = Math.random();
@@ -514,7 +541,9 @@ function Person({
             },
             addContentList(cl) {
                 const init = cl.pop();
-                contentMomentum += init;
+                if (typeof init === "number" && init === init) {
+                    contentMomentum += init;
+                }
                 if (cl.length !== 0) {
                     contentList.push(cl);
                 }
@@ -769,6 +798,25 @@ function Person({
                                 if (ventilator) {
                                     hospital.returnVentilator(this);
                                 }
+                                if (home.isApartmentBuilding) {
+                                    family.forEach(person => {
+                                        if (person !== this) {
+                                            person.createEvent({
+                                                magnitude: random(-0.25, -0.5),
+                                                length: 2
+                                            })
+                                        }
+                                    })
+                                } else {
+                                    family.forEach(person => {
+                                        if (person !== this) {
+                                            person.createEvent({
+                                                magnitude: random(-0.75, -1.5),
+                                                length: 3
+                                            })
+                                        }
+                                    })
+                                }
                                 skulls.push({
                                     x: x - 15,
                                     y: y - 15
@@ -852,8 +900,9 @@ function Person({
             <h1>${name}</h1>
             <p>Age: ${age}</p>
             <p>Food: ${food}</p>
-            <p>Content: ${alignContent(content).toFixed(2)}/100</p>
             <p>Contagious: ${contagious}</p>
+            <p>Symptomatic: ${infected > -1}</p>
+            ${ infected > - 1?`<p>Symptoms: ${disease.phases[infected].symptoms}</p>` : ""}
             ${ !child ? `<p>Money: $${money.toFixed(2)}</p>` : ""}
             ${DEBUG ? `
             <p>Path: ${thePath.map(pos).join("-")}</p>

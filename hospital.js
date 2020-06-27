@@ -7,6 +7,7 @@ function Hospital({
     const patients = [];
     let maxCapacity = 8;
     let ventilators = 1;
+    let maxVentilators = 1;
     return {
         draw() {
             if (selected === this) {
@@ -76,6 +77,11 @@ function Hospital({
         },
         doctorsToPatientsRatio() {
             return residents.filter(doctor => doctor.infected < 0).length / Math.max(patients.length, 1);
+        },
+        autoReturnVentilators() {
+            if (!patients.some(patient => patient.usingVentilator)) {
+                ventilators = maxVentilators;
+            }
         },
         renderStats() {
             dashboard.innerHTML = "";

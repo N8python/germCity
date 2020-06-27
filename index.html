@@ -12,6 +12,7 @@
     <script src="https://unpkg.com/tinyqueue@2.0.0/tinyqueue.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.0.0/p5.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Faker/3.1.0/faker.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
 </head>
 
 <body class="w3-padding">
@@ -27,17 +28,24 @@
             <div class="w3-container">
                 <span onclick="document.getElementById('cityStats').style.display='none'" class="w3-button w3-display-topright">&times;</span>
                 <h1>City Stats</h1>
-                <p id="pop">Population: 500</p>
-                <p id="susceptible">Susceptible: 0</p>
-                <p id="exposed">Exposed: 0</p>
-                <p id="infected">Infected: 0</p>
-                <p id="recovered">Recovered: 0</p>
-                <p id="dead">Dead: 0</p>
-                <p id="avgAge">Average Age:</p>
-                <p id="avgMon">Average Money:</p>
-                <p id="avgFood">Average Food Points:</p>
-                <p id="avgSMon">Average Small Business Money: $0</p>
-                <p id="avgContent">Average Content: 50/100</p>
+                <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="showListStats"><i class="fa fa-list"></i></button>
+                <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="showChartStats"><i class="fa fa-line-chart"></i></button>
+                <div id="listStats">
+                    <p id="pop">Population: 500</p>
+                    <p id="susceptible">Susceptible: 0</p>
+                    <p id="exposed">Exposed: 0</p>
+                    <p id="infected">Infected: 0</p>
+                    <p id="recovered">Recovered: 0</p>
+                    <p id="dead">Dead: 0</p>
+                    <p id="avgAge">Average Age:</p>
+                    <p id="avgMon">Average Money:</p>
+                    <p id="avgFood">Average Food Points:</p>
+                    <p id="avgSMon">Average Small Business Money: $0</p>
+                    <p id="avgContent" hidden>Average Content: 50/100</p>
+                </div>
+                <div id="chartStats" hidden>
+                    <canvas id="diseaseChart"></canvas>
+                </div>
             </div>
         </div>
     </div>

@@ -42,6 +42,7 @@ const disease = {
     }, {
         // Recovery
         symptoms: "mild respiratory",
+        recovery: true,
         mortalityRate: 0,
         range: [2, 4],
         contagiousness: 0,
