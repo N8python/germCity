@@ -640,6 +640,9 @@ document.getElementById("-").onclick = () => {
 document.getElementById("showSC").onclick = () => {
     document.getElementById('cityStats').style.display = 'block';
 }
+document.getElementById("instructions").onclick = () => {
+    document.getElementById('instructionsModal').style.display = 'block';
+}
 document.getElementById("patientZero").onclick = () => {
     targetTx = -patientZero.x + 300;
     targetTy = -patientZero.y + 300;
