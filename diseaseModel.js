@@ -10,7 +10,7 @@ const n8FluDist = (age) => {
         }
         return (1.0281 ** (age - 50)) / 4
     }
-    // r0 = 2
+    // r0 = 2?
     // Mortality of 15-20%
 const disease = {
     name: "N8 Flu",
