@@ -11,6 +11,7 @@
     <link href="styles.css" rel="stylesheet">
     <script src="https://unpkg.com/tinyqueue@2.0.0/tinyqueue.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.0.0/p5.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Faker/3.1.0/faker.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
 </head>
@@ -38,10 +39,12 @@
                     <p id="infected">Infected: 0</p>
                     <p id="recovered">Recovered: 0</p>
                     <p id="dead">Dead: 0</p>
+                    <p id="scareLevel">Scare Level: 0</p>
                     <p id="avgAge">Average Age:</p>
                     <p id="avgMon">Average Money:</p>
                     <p id="avgFood">Average Food Points:</p>
                     <p id="avgSMon">Average Small Business Money: $0</p>
+                    <p id="avgPar">Average Paranoia:</p>
                     <p id="avgContent" hidden>Average Content: 50/100</p>
                 </div>
                 <div id="chartStats" hidden>
@@ -125,10 +128,45 @@
         </div>
     </div>
     <div id="dashboard">
+    </div>
+    <div id="dashboardButtons">
 
     </div>
+    <div id="controls" class="w3-border w3-right w3-padding" style="width:300px">
+        <p id="funds">Funds: $0</p>
+        <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="cashBoost"><div class="tooltip">Cash Infusion
+            <span id="cashInfusionTool" class="tooltiptext">Immediately recieve $1000-$3000</span>
+          </div></button>
+        <p id="cashInfusionLeft">Infusions Left: 3</p>
+        <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="openTest"><div class="tooltip">Testing
+            <span id="openTestTool" class="tooltiptext">Open up testing information.</span>
+          </div></button>
+        <p id="confirmedCaseDisp">Confirmed Cases: 0</p>
+        <p id="fpsDisplay">FPS: 60</p>
+    </div>
+    <div id="testStats" class="w3-modal">
+        <div class="w3-modal-content w3-animate-zoom">
+            <div class="w3-container">
+                <span onclick="document.getElementById('testStats').style.display='none'" class="w3-button w3-display-topright">&times;</span>
+                <h1>Testing</h1>
+                <p id="numTests">Tests: 10</p>
+                <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="makeTest">Make Test for $250 (0 / 5)</button>
+                <p id="testAcc">Test Accuracy: 70%</p>
+                <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="improveAcc">Improve Test Accuracy for $1000 (Takes 12 Hours)</button>
+                <p id="testCost">Test Cost: $250</p>
+                <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="improveCP">Improve Cost of Production for $500 (Takes 6 Hours)</button><br>
+                <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="remodelTest">Remodel Test for $2500 (Takes 24 Hours)</button>
+                <p id="testDur">Test Duration: 6 hours</p>
+                <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="improveEff">Improve Test Efficiency for $300 (Takes 24 Hours)</button><br>
+                <p id="testMacCap">Test Manufacturing Capacity: 5 tests / day</p>
+                <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="improveMacPac">Improve Manufacturing Capacity by 1 for $300 (Takes Effect the Next Day)</button><br>
+            </div>
+        </div>
+    </div>
     <!--<a href="https://clustrmaps.com/site/1b96b" title="Visit tracker" hidden><img src="//www.clustrmaps.com/map_v2.png?d=p1HJKSolDg5zEJonekQ9JR5IAVj_MJ0v0iDTMofbsCA&cl=ffffff"></a>-->
+    <script src="config.js"></script>
     <script src="ms.js"></script>
+    <script src="scare.js"></script>
     <script src="diseaseModel.js"></script>
     <script src="mouse.js"></script>
     <script src="house.js"></script>

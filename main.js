@@ -1,5 +1,5 @@
 const DEBUG = false;
-let timespeed = 5;
+let timespeed = 1;
 let tx = 0;
 let ty = 0;
 let scaleVal = 1;
@@ -489,34 +489,98 @@ function updateLineChart({
 }
 renderLineChart();
 let doneWithSimulation = false;
+let funds = 0;
+let fundsToGive = getRndInteger(2500, 5000);
+let infusionsLeft = 3;
+let tests = 10;
+let testsLeft = test.maccap.value;
+let testsToAdd = 0;
+let confirmedCases = 0;
+const pop = document.getElementById("pop");
+const recovered = document.getElementById("recovered");
+const susceptible = document.getElementById("susceptible");
+const exposed = document.getElementById("exposed");
+const infected = document.getElementById("infected");
+const dead = document.getElementById("dead");
+const scareLevel = document.getElementById("scareLevel");
+const avgContent = document.getElementById("avgContent");
+const avgAge = document.getElementById("avgAge");
+const avgMon = document.getElementById("avgMon");
+const avgSMon = document.getElementById("avgSMon");
+const avgFood = document.getElementById("avgFood");
+const avgPar = document.getElementById("avgPar");
+const fundDisp = document.getElementById("funds");
+const cashInfusionLeft = document.getElementById("cashInfusionLeft");
+const numTests = document.getElementById("numTests");
+const makeTest = document.getElementById("makeTest");
+const testAcc = document.getElementById("testAcc");
+const improveAcc = document.getElementById("improveAcc")
+const testCost = document.getElementById("testCost");
+const improveCP = document.getElementById("improveCP");
+const remodelTest = document.getElementById("remodelTest");
+const testDur = document.getElementById("testDur");
+const improveEff = document.getElementById("improveEff");
+const testMacCap = document.getElementById("testMacCap");
+const improveMacPac = document.getElementById("improveMacPac");
+const fpsDisplay = document.getElementById("fpsDisplay");
+const confirmedCaseDisp = document.getElementById("confirmedCaseDisp");
 
 function draw() {
     selectTick += 0.1;
     const oldDay = getDay();
     const oldHour = getHour();
+    const oldMinute = getMinute();
     time += 6000 * timespeed;
-    document.getElementById("pop").innerHTML = `Population: ${people.length}`;
-    document.getElementById("recovered").innerHTML = `Recovered: ${people.filter(({infected}) => infected === -4).length}`;
-    document.getElementById("susceptible").innerHTML = `Susceptible: ${people.filter(({infected}) => infected === -3).length}`;
-    document.getElementById("exposed").innerHTML = `Exposed: ${people.filter(({infected}) => infected === -2).length}`;
-    document.getElementById("infected").innerHTML = `Infected: ${people.filter(({infected}) => infected > -2).length}`;
-    document.getElementById("dead").innerHTML = `Dead: ${500 - people.length}`;
-    document.getElementById("avgContent").innerHTML = `Average Content: ${(people.map(person => person.content).reduce((t, v) => t + v) / people.length).toFixed(3)}/100`;
-    document.getElementById("avgAge").innerHTML = `Average Age: ${(people.map(person => person.age).reduce((t, v) => t + v) / people.length).toFixed(3)}`;
-    document.getElementById("avgMon").innerHTML = `Average Money: $${(people.filter(person => person.money !== undefined).map(person => person.money).reduce((t, v) => t + v) / people.length).toFixed(2)}`;
-    document.getElementById("avgSMon").innerHTML = `Average Small Business Money: $${(smallBusinesses.map(biz => biz.money).reduce((t, v) => t + v) / smallBusinesses.length).toFixed(2)}`;
-    document.getElementById("avgFood").innerHTML = `Average Food Points Per Person: ${(people.map(person => person.food).reduce((t, v) => t + v) / people.length).toFixed(3)}`;
-    document.getElementById("avgContent").innerHTML = `Average Content: ${(people.filter(person => !Number.isNaN(person.content)).map(person => person.content).reduce((t, v) => t + v) / people.length).toFixed(3)}/100`;
+    pop.innerHTML = `Population: ${people.length}`;
+    recovered.innerHTML = `Recovered: ${people.filter(({infected}) => infected === -4).length}`;
+    susceptible.innerHTML = `Susceptible: ${people.filter(({infected}) => infected === -3).length}`;
+    exposed.innerHTML = `Exposed: ${people.filter(({infected}) => infected === -2).length}`;
+    infected.innerHTML = `Infected: ${people.filter(({infected}) => infected > -2).length}`;
+    dead.innerHTML = `Dead: ${500 - people.length}`;
+    scareLevel.innerHTML = `Scare Level: ${scare.level.toFixed(3)}`;
+    avgAge.innerHTML = `Average Age: ${(people.map(person => person.age).reduce((t, v) => t + v) / people.length).toFixed(3)}`;
+    avgMon.innerHTML = `Average Money: $${(people.filter(person => person.money !== undefined).map(person => person.money).reduce((t, v) => t + v) / people.length).toFixed(2)}`;
+    avgSMon.innerHTML = `Average Small Business Money: $${(smallBusinesses.map(biz => biz.money).reduce((t, v) => t + v) / smallBusinesses.length).toFixed(2)}`;
+    avgFood.innerHTML = `Average Food Points Per Person: ${(people.map(person => person.food).reduce((t, v) => t + v) / people.length).toFixed(3)}`;
+    avgPar.innerHTML = `Average Paranoia: ${(people.map(person => person.paranoia).reduce((t, v) => t + v) / people.length).toFixed(3)}`;
+    avgContent.innerHTML = `Average Content: ${(people.filter(person => !Number.isNaN(person.content)).map(person => person.content).reduce((t, v) => t + v) / people.length).toFixed(3)}/100`;
+    fundDisp.innerHTML = `Funds: $${funds.toFixed(2)}`;
+    cashInfusionLeft.innerHTML = `Infusions Left: ${infusionsLeft}`;
+    numTests.innerHTML = `Tests: ${tests}`;
+    makeTest.innerHTML = `Make Test for $${test.cp.value.toFixed(2)} (${test.maccap.value - testsLeft} / ${test.maccap.value})`;
+    testAcc.innerHTML = `Test Accuracy: ${(test.acc.value * 100).toFixed(2)}%`
+    improveAcc.innerHTML = `Improve Test Accuracy for $${test.acc.costToImprove.toFixed(2)}`;
+    testCost.innerHTML = `Test Cost: $${test.cp.value.toFixed(2)}`;
+    improveCP.innerHTML = `Improve Cost of Production for $${test.cp.costToImprove.toFixed(2)}`;
+    remodelTest.innerHTML = `Remodel Test for $${test.cp.costToRemodel.toFixed(2)}`;
+    testDur.innerHTML = `Test Duration: ${(test.eff.value / 60).toFixed(2)} hours`;
+    improveEff.innerHTML = `Improve Test Efficiency for $${test.eff.costToImprove.toFixed(2)}`;
+    testMacCap.innerHTML = `Test Manufacturing Capacity: ${test.maccap.value + testsToAdd} tests / day`;
+    improveMacPac.innerHTML = `Improve Manufacturing Capacity by 1 for $${test.maccap.costToImprove.toFixed(2)} (Takes Effect the Next Day)`;
+    confirmedCaseDisp.innerHTML = `Confirmed Cases: ${confirmedCases}`;
     timespeed = 1 + 0.04 * (document.getElementById("tx").value - 1);
     document.getElementById("timeMult").innerHTML = `${timespeed.toFixed(2)}x`;
+    if (!(selected && selected.isPerson)) {
+        document.getElementById("dashboardButtons").innerHTML = "";
+    }
     if (getDay() !== oldDay) {
         people.forEach(person => {
             person.refreshSchedule();
             person.handleContent();
         });
+        scare.updateScare(-0.5);
+        fundsToGive = random(2500, 5000);
+        test.maccap.value += testsToAdd;
+        testsToAdd = 0;
+        testsLeft = test.maccap.value;
     }
     if (getHour() !== oldHour) {
         hoursPassed++;
+    }
+    if (getMinute() !== oldMinute) {
+        const minuteNow = getDay() * 60 * 24 + getHour() * 60 + getMinute();
+        const minuteThen = oldDay * 60 * 24 + oldHour * 60 + oldMinute;
+        funds += fundsToGive / (24 * 60) * (minuteNow - minuteThen);
     }
     if (hoursPassed === 12 && !doneWithSimulation) {
         hoursPassed = 0;
@@ -530,10 +594,10 @@ function draw() {
         if (record.infected === 0) {
             doneWithSimulation = true;
         }
-        history.push(record)
+        history.push(record);
         updateLineChart(record);
     }
-    timer.innerHTML = ms(time)
+    timer.innerHTML = ms(time);
     background(200);
     scale(scaleVal);
     translate(tx, ty);
@@ -562,19 +626,19 @@ function draw() {
     houses.forEach(building => {
         building.draw();
         building.cc();
-    })
+    });
     apartmentBuildings.forEach(building => {
         building.draw();
         building.cc();
-    })
+    });
     smallBusinesses.forEach(building => {
         building.draw();
         building.cc();
-    })
+    });
     schools.forEach(school => {
         school.draw();
         school.cc();
-    })
+    });
     groceryStores.forEach(store => {
         store.draw();
         store.cc();
@@ -589,7 +653,7 @@ function draw() {
         noStroke();
         ellipse(x + 15, y + 15, 30, 30);
         image(skull, x, y, 30, 30);
-    })
+    });
     people.forEach(person => {
         person.draw();
         person.move();
@@ -629,6 +693,7 @@ function keyPressed() {
     if (key === "e") {
         selected = undefined;
         dashboard.innerHTML = "";
+        document.getElementById("dashboardButtons").innerHTML = "";
     }
 }
 document.getElementById("+").onclick = () => {
@@ -658,3 +723,68 @@ document.getElementById("showChartStats").onclick = () => {
     chartStats.removeAttribute("hidden");
     listStats.setAttribute("hidden", "true");
 }
+document.getElementById("cashBoost").onclick = () => {
+    if (infusionsLeft > 0) {
+        funds += random(1000, 3000);
+        infusionsLeft -= 1;
+    }
+}
+document.getElementById("openTest").onclick = () => {
+    document.getElementById('testStats').style.display = 'block';
+}
+document.getElementById("makeTest").onclick = () => {
+    if (funds >= test.cp.value && testsLeft > 0) {
+        funds -= test.cp.value;
+        tests += 1;
+        testsLeft -= 1;
+    }
+}
+document.getElementById("improveAcc").onclick = () => {
+    if (funds >= test.acc.costToImprove) {
+        funds -= test.acc.costToImprove;
+        if (test.acc.value <= 0.8) {
+            test.acc.value += random(0, 0.05);
+        } else if (test.acc.value <= 0.9) {
+            test.acc.value += random(0, 0.03);
+        } else if (test.acc.value <= 0.95) {
+            test.acc.value += random(0, 0.01)
+        }
+        if (test.acc.value > 0.95) {
+            test.acc.value = 0.95;
+            document.getElementById("improveAcc").setAttribute("disabled", "true")
+        }
+        test.acc.costToImprove += random(0, 100);
+    }
+}
+document.getElementById("improveCP").onclick = () => {
+    if (funds >= test.cp.costToImprove) {
+        funds -= test.cp.costToImprove;
+        test.cp.value *= random(0.8, 0.9);
+        test.cp.costToImprove += random(0, 100);
+    }
+}
+document.getElementById("remodelTest").onclick = () => {
+    if (funds >= test.cp.costToRemodel) {
+        funds -= test.cp.costToRemodel;
+        test.cp.value *= max(min(randomGaussian(0.5, 0.25), 1), 0.25);
+        test.cp.costToRemodel *= random(1.25, 1.75);
+        test.cp.costToImprove += random(50, 150);
+    }
+}
+document.getElementById("improveEff").onclick = () => {
+    if (funds >= test.eff.costToImprove) {
+        funds -= test.eff.costToImprove;
+        test.eff.value *= random(0.5, 1);
+        test.eff.costToImprove *= random(1.5, 2.5);
+    }
+}
+document.getElementById("improveMacPac").onclick = () => {
+    if (funds >= test.maccap.costToImprove) {
+        funds -= test.maccap.costToImprove;
+        testsToAdd += 1;
+        test.maccap.costToImprove += random(10, 50);
+    }
+}
+setInterval(() => {
+    fpsDisplay.innerHTML = `FPS: ${Math.round(frameRate())}`;
+}, 1000)

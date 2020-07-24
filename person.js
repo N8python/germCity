@@ -34,9 +34,12 @@ function Person({
     let food = 0;
     let conTimer;
     let stageTimer;
+    let testTimer;
+    let testState = 0;
     let hospitalRoom;
     const name = lastName ? faker.name.firstName() + " " + lastName : faker.name.findName();
     const age = child ? getRndInteger(5, 18) : getRndInteger(19, 80);
+    let paranoia = Math.random();
     let groceryStore;
     if (Math.hypot(x - groceryStores[0].x, y - groceryStores[0].y) < Math.hypot(x - groceryStores[1].x, y - groceryStores[1].y)) {
         groceryStore = groceryStores[0];
@@ -100,6 +103,9 @@ function Person({
     let breakOver = 13 * 60 + getRndInteger(0, 30);
     let sayAtHomeForRestOfDay = false;
     const me = {
+            get isPerson() {
+                return true;
+            },
             interpretSchedule() {
                 const item = schedule[getHour() * 60 + getMinute()];
                 let prevMode;
@@ -715,6 +721,18 @@ function Person({
             get infected() {
                 return infected;
             },
+            get paranoia() {
+                return paranoia;
+            },
+            set paranoia(val) {
+                paranoia = val;
+                if (paranoia > 1) {
+                    paranoia = 1;
+                }
+                if (paranoia < 0) {
+                    paranoia = 0;
+                }
+            },
             set infected(val) {
                 infected = val;
                 if (val === -1) {
@@ -756,6 +774,33 @@ function Person({
                 if (stageTimer !== undefined) {
                     stageTimer -= 6000 * timespeed;
                 }
+                if (testTimer !== undefined) {
+                    testTimer -= 6000 * timespeed;
+                }
+                if (testTimer < 1) {
+                    testTimer = undefined;
+                    let positive = false;
+                    if (Math.random() <= test.acc.value && infected >= -2) {
+                        positive = true;
+                    }
+                    if (positive) {
+                        Swal.fire({
+                            icon: `info`,
+                            title: `${name}'s Test is Positive`,
+                            confirm: "Ok"
+                        });
+                        confirmedCases += 1;
+                        testState = 2;
+                    } else {
+                        Swal.fire({
+                            icon: `info`,
+                            title: `${name}'s Test is Negative`,
+                            confirm: "Ok"
+                        });
+                        testState = 0;
+                    }
+                    this.setupRender();
+                }
                 if (conTimer < 0 && infected !== -4) {
                     contagious = true;
                 }
@@ -775,6 +820,8 @@ function Person({
                         })
                         if (newPhase === "resolve") {
                             infected = -4;
+                            this.paranoia += 0.3;
+                            scare.updateScare(-0.25);
                             contagious = false;
                             sickState = 0;
                         } else {
@@ -791,6 +838,7 @@ function Person({
                             }
                             //console.log(disease.phases[infected].symptoms, mortality);
                             if (Math.random() <= mortality) {
+                                scare.updateScare(2.5);
                                 people.splice(people.indexOf(this), 1);
                                 if (mode === "wanderHospital") {
                                     hospital.checkOut(this);
@@ -806,6 +854,7 @@ function Person({
                                                 length: 2
                                             })
                                         }
+                                        person.paranoia -= 0.2;
                                     })
                                 } else {
                                     family.forEach(person => {
@@ -815,6 +864,7 @@ function Person({
                                                 length: 3
                                             })
                                         }
+                                        person.paranoia -= 0.4;
                                     })
                                 }
                                 skulls.push({
@@ -840,7 +890,7 @@ function Person({
                         target = null;
                         this.findPath(home, hospital);
                     }
-                    if (infected > -1 && people.includes(this) && disease.phases[infected].symptoms === "ards") {
+                    if (infected > -1 && hospital.patients.includes(this) && people.includes(this) && disease.phases[infected].symptoms === "ards") {
                         if (hospital.canTakeVentilator()) {
                             hospital.takeVentilator(this);
                         }
@@ -861,6 +911,13 @@ function Person({
                         this.infected = -3;
                     } else if (Math.random() < disease.exposureToCaseChance * timespeed) {
                         this.infected = -1;
+                        this.paranoia -= 0.15;
+                        family.forEach(person => {
+                            if (person !== this) {
+                                person.paranoia -= 0.05;
+                            }
+                        })
+                        scare.updateScare(1);
                     }
                 }
                 if (contagious && infected > -2) {
@@ -890,8 +947,12 @@ function Person({
             },
             cc() {
                 const [mx, my] = getMouseCoords();
-                if (mouseInBounds() && dist(x, y, mx, my) < 10 && mouseIsPressed) {
+                if (mouseInBounds() && dist(x, y, mx, my) < 5 && mouseIsPressed) {
                     //this.renderStats();
+                    if (selected !== this) {
+                        this.setupRender();
+                    }
+
                     selected = this;
                 }
             },
@@ -902,8 +963,11 @@ function Person({
             <p>Food: ${food}</p>
             <p>Contagious: ${contagious}</p>
             <p>Symptomatic: ${infected > -1}</p>
+            <p>Paranoia: ${paranoia.toFixed(3)}</p>
+            <p>
             ${ infected > - 1?`<p>Symptoms: ${disease.phases[infected].symptoms}</p>` : ""}
             ${ !child ? `<p>Money: $${money.toFixed(2)}</p>` : ""}
+            ${ (testState === 1) ? `<p>Test Time Left: ${(testTimer / hour).toFixed(2)} hours`: ""}
             ${DEBUG ? `
             <p>Path: ${thePath.map(pos).join("-")}</p>
             <p>Distance to next step: ${thePath.length > 0 ? abs((x - thePath[0].x)) + abs((y - thePath[0].y)) : ""}</p>
@@ -914,8 +978,48 @@ function Person({
             <p>Contagious Timer: ${conTimer}</p>
             <p>Stage Timer: ${stageTimer}</p>
             <p>Infected: ${infected}</p>
-            <p>Sick State: ${sickState}</p>` : ""}
+            <p>Sick State: ${sickState}</p>
+            <p>Test State: ${testState}</p>
+            <p>Test Timer: ${testTimer}</p>
+            ` : ""}
             `
+        },
+        setupRender() {
+            document.getElementById("dashboardButtons").innerHTML = "";
+            setTimeout(() => {
+                const dashboardButtons = document.getElementById("dashboardButtons");
+            if (!dashboardButtons.innerHTML.includes("<button")) {
+                const testButton = document.createElement("button");
+                testButton.classList.add("w3-btn", "w3-border", "w3-round-xlarge", "styled-btn");
+                if (testState === 0) {
+                    testButton.innerHTML = "Test";
+                } else if (testState === 1) {
+                    testButton.innerHTML = "Testing...";
+                    testButton.setAttribute("disabled", "true");
+                } else if (testState === 2) {
+                    testButton.innerHTML = "Tested";
+                    testButton.setAttribute("disabled", "true");
+                }
+                testButton.onclick = () => {
+                    if (name === selected.name) {
+                        testButton.innerHTML = "Testing...";
+                        testState = 1;
+                        testTimer = test.eff.value * minute;
+                        testButton.setAttribute("disabled", "true")
+                        tests -= 1;
+                    } else if (tests < 0) {
+                        Swal.fire({
+                            title: 'No Tests Available',
+                            text: 'Produce a test in order to test someone - as you currently have 0 tests.',
+                            icon: 'error',
+                            confirmButtonText: 'Ok'
+                          })
+                    }
+                }
+                dashboardButtons.appendChild(testButton);
+            }
+
+            }, 0)
         }
 
     }

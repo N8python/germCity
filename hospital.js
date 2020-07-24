@@ -43,6 +43,9 @@ function Hospital({
         get residents() {
             return residents;
         },
+        get patients() {
+            return patients;
+        },
         canCheckIn() {
             return patients.length + 1 <= maxCapacity;
         },
