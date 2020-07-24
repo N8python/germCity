@@ -1,3 +1,16 @@
+# Germ City - 0.3.0 (Funds & Tests)
+
+*July 24, 2020*
+
+## Additions:
+- Added paranoia and scare level.
+- Added funds & cash infusions.
+- Added tests.
+- Added test upgrade interface.
+- Added confirmed cases.
+## Important Fixes:
+- People no longer wear ventilators outside of hospitals.
+
 # Germ City - 0.2.1 (Charts & Instructions)
 
 *June 27, 2020*
