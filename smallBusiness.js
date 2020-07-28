@@ -49,6 +49,9 @@ function SmallBusiness({
                 selected = this;
             }
         },
+        get isSmallBusiness() {
+            return true;
+        },
         renderStats() {
             dashboard.innerHTML = `<h1>${name}</h1>
             <p>Employees: ${residents.length}</p>

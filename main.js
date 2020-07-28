@@ -8,6 +8,14 @@ const skulls = [];
 let skull;
 let time = 7 * 60 * 60 * 1000;
 let selectTick = 0;
+let maskStatus = "off";
+let enactedLockdownPolicies = [];
+const maskMultiplier = {
+    off: 0,
+    encouraged: 1,
+    recommended: 2,
+    mandatory: Infinity
+};
 const timer = document.getElementById("timer");
 const office = Office({
     x: 1000,
@@ -570,6 +578,15 @@ function draw() {
         });
         scare.updateScare(-0.5);
         fundsToGive = random(2500, 5000);
+        if (enactedLockdownPolicies.includes("closeOffice")) {
+            fundsToGive -= 250;
+        }
+        if (enactedLockdownPolicies.includes("closeSmallBusinesses")) {
+            fundsToGive -= 500;
+        }
+        if (enactedLockdownPolicies.includes("totalLockdown")) {
+            fundsToGive -= 1500;
+        }
         test.maccap.value += testsToAdd;
         testsToAdd = 0;
         testsLeft = test.maccap.value;
@@ -785,6 +802,97 @@ document.getElementById("improveMacPac").onclick = () => {
         test.maccap.costToImprove += random(10, 50);
     }
 }
+let bohPSAs = 0;
+document.getElementById("psaBOH").onclick = () => {
+    if (funds >= 1500) {
+        funds -= 1500;
+        people.forEach(person => {
+            person.bumpHygiene(0.75 ** bohPSAs);
+        })
+        bohPSAs += 1;
+    }
+}
+let wamPSAs = 0;
+document.getElementById("psaWAM").onclick = () => {
+    if (funds >= 1500) {
+        funds -= 1500;
+        people.forEach(person => {
+            person.paranoia -= random(0.001, 0.05) * 0.75 ** wamPSAs;
+        })
+        wamPSAs += 1;
+    }
+}
+let dodPSAs = 0;
+document.getElementById("psaDOD").onclick = () => {
+    if (funds >= 1500) {
+        funds -= 1500;
+        scare.updateScare(5 * 0.75 ^ dodPSAs);
+        dodPSAs += 1;
+    }
+}
+document.getElementById("addRoom").onclick = () => {
+    if (funds >= 2000) {
+        funds -= 2000;
+        hospital.maxCapacity += 1;
+    }
+}
+document.getElementById("addVentilator").onclick = () => {
+    if (funds >= 1000) {
+        funds -= 1000;
+        hospital.addVentilators(1);
+    }
+}
+document.getElementById("openMask").onclick = () => {
+    document.getElementById('maskStats').style.display = "block";
+}
+document.getElementById("openLock").onclick = () => {
+    document.getElementById("lockStats").style.display = "block";
+}
+document.getElementById("openPSA").onclick = () => {
+    document.getElementById('psaStats').style.display = 'block';
+}
+document.getElementById("openHospitalUpgrades").onclick = () => {
+    document.getElementById('hospitalStats').style.display = 'block';
+}
 setInterval(() => {
     fpsDisplay.innerHTML = `FPS: ${Math.round(frameRate())}`;
+    maskStatus = Array.from(document.querySelectorAll(`[name="masks"]`)).filter(x => x.checked)[0].value;
 }, 1000)
+setInterval(() => {
+    if (confirmedCases >= 2) {
+        document.getElementById("masksEncouraged").removeAttribute("disabled");
+        document.querySelector(`[for="masksEncouraged"]`).innerHTML = "Masks Encouraged";
+    }
+    if (confirmedCases >= 5) {
+        document.getElementById("staggerSchools").removeAttribute("disabled");
+        document.querySelector(`[for="staggerSchools"]`).innerHTML = "Staggered School Schedules";
+    }
+    if (confirmedCases >= 10) {
+        document.getElementById("masksRecommended").removeAttribute("disabled");
+        document.querySelector(`[for="masksRecommended"]`).innerHTML = "Masks Recommended";
+        document.getElementById("closeSchools").removeAttribute("disabled");
+        document.querySelector(`[for="closeSchools"]`).innerHTML = "Close Schools";
+    }
+    if (confirmedCases >= 20) {
+        document.getElementById("masksMandatory").removeAttribute("disabled");
+        document.querySelector(`[for="masksMandatory"]`).innerHTML = "Masks Mandatory";
+    }
+    if (confirmedCases >= 25) {
+        document.getElementById("closeOffice").removeAttribute("disabled");
+        document.querySelector(`[for="closeOffice"]`).innerHTML = "Close Office - $250 / Day";
+    }
+    if (confirmedCases >= 40) {
+        document.getElementById("closeSmallBusinesses").removeAttribute("disabled");
+        document.querySelector(`[for="closeSmallBusinesses"]`).innerHTML = "Partially Close Small Businesses - $500 / Day";
+    }
+    if (confirmedCases >= 50) {
+        document.getElementById("totalLockdown").removeAttribute("disabled");
+        document.querySelector(`[for="totalLockdown"]`).innerHTML = "Total Lockdown - $1500 / Day";
+    }
+    enactedLockdownPolicies = Array.from(document.querySelectorAll(`[name="lockPolicy"]`)).filter(x => x.checked).map(x => x.value);
+    if (enactedLockdownPolicies.includes("totalLockdown")) {
+        Array.from(document.querySelectorAll(`[name="lockPolicy"]`)).forEach(x => x.checked = true);
+    }
+    document.getElementById("hospitalRooms").innerHTML = `Hospital Rooms: ${hospital.maxCapacity}`;
+    document.getElementById("hospitalVentilators").innerHTML = `Hospital Ventilators: ${hospital.ventilators}`
+}, 500)

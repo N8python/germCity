@@ -1,3 +1,22 @@
+# Germ City - 0.3.1 (Masks, Lockdowns, PSAs, and Hospital Upgrades)
+
+*July 28, 2020*
+
+## Additions:
+- Added masks.
+- Added lockdown policies:
+- - Staggered School Schedules
+- - Closing Schools
+- - Closing the Office
+- - Partially Closing Small Businesses
+- - Total Lockdown (everything closed but hospitals and grocery stores).
+- Added PSAs:
+- - PSA: The Benefits of Hygiene
+- - PSA: Wear a Mask & Socially Distance
+- - PSA: Dangers of Disease
+- Added Hospital Upgrades:
+- - Add a Room to the Hospital
+- - Create a Ventilator for the Hospital
 # Germ City - 0.3.0 (Funds & Tests)
 
 *July 24, 2020*

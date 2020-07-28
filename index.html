@@ -142,6 +142,18 @@
             <span id="openTestTool" class="tooltiptext">Open up testing information.</span>
           </div></button>
         <p id="confirmedCaseDisp">Confirmed Cases: 0</p>
+        <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="openMask"><div class="tooltip">Masks
+            <span id="openMaskTool" class="tooltiptext">Open up mask information.</span>
+          </div></button>
+        <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="openLock"><div class="tooltip">Lockdown
+            <span id="openLockTool" class="tooltiptext">Open up lockdown information.</span>
+          </div></button>
+        <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="openPSA"><div class="tooltip">PSAs
+            <span id="openPSATool" class="tooltiptext">Open up PSA information.</span>
+          </div></button>
+        <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="openHospitalUpgrades"><div class="tooltip">Hospital Upgrades
+            <span id="hospitalUpgradeInfo" class="tooltiptext">Open up hospital upgrades menu.</span>
+          </div></button>
         <p id="fpsDisplay">FPS: 60</p>
     </div>
     <div id="testStats" class="w3-modal">
@@ -160,6 +172,78 @@
                 <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="improveEff">Improve Test Efficiency for $300 (Takes 24 Hours)</button><br>
                 <p id="testMacCap">Test Manufacturing Capacity: 5 tests / day</p>
                 <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="improveMacPac">Improve Manufacturing Capacity by 1 for $300 (Takes Effect the Next Day)</button><br>
+            </div>
+        </div>
+    </div>
+    <div id="maskStats" class="w3-modal">
+        <div class="w3-modal-content w3-animate-zoom">
+            <div class="w3-container">
+                <span onclick="document.getElementById('maskStats').style.display='none'" class="w3-button w3-display-topright">&times;</span>
+                <h1>Masks</h1>
+                <p>People currently wearing masks in public: 0</p>
+                <h3>Mask Recommendation Status: </h3>
+                <input type="radio" id="maskOff" name="masks" value="off" checked>
+                <label for="maskOff">Off</label><br>
+                <input type="radio" id="masksEncouraged" name="masks" value="encouraged" disabled>
+                <label for="masksEncouraged">Masks Encouraged (Requires 2 Confirmed Cases)</label><br>
+                <input type="radio" id="masksRecommended" name="masks" value="recommended" disabled>
+                <label for="masksRecommended">Masks Recommended (Requires 10 Confirmed Cases)</label><br>
+                <input type="radio" id="masksMandatory" name="masks" value="mandatory" disabled>
+                <label for="masksMandatory">Masks Mandatory (Requires 20 Confirmed Cases)</label> </div>
+            <br>
+        </div>
+    </div>
+    <div id="lockStats" class="w3-modal">
+        <div class="w3-modal-content w3-animate-zoom">
+            <div class="w3-container">
+                <span onclick="document.getElementById('lockStats').style.display='none'" class="w3-button w3-display-topright">&times;</span>
+                <h1>Lockdown</h1>
+                <h3>Policies:</h3>
+                <input type="checkbox" id="staggerSchools" name="lockPolicy" value="staggerSchools" disabled>
+                <label for="staggerSchools">Staggered School Schedules (5 Confirmed Cases)</label>
+                <br>
+                <input type="checkbox" id="closeSchools" name="lockPolicy" value="closeSchools" disabled>
+                <label for="closeSchools">Close Schools (10 Confirmed Cases)</label>
+                <br>
+                <input type="checkbox" id="closeOffice" name="lockPolicy" value="closeOffice" disabled>
+                <label for="closeOffice">Close Office (25 Confirmed Cases) - $250 / Day</label>
+                <br>
+                <input type="checkbox" id="closeSmallBusinesses" name="lockPolicy" value="closeSmallBusinesses" disabled>
+                <label for="closeSmallBusinesses">Partially Close Small Businesses (40 Confirmed Cases) - $500 / Day</label>
+                <br>
+                <input type="checkbox" id="totalLockdown" name="lockPolicy" value="totalLockdown" disabled>
+                <label for="totalLockdown">Total Lockdown (50 Confirmed Cases) - $1500 / Day</label>
+                <br>
+                <br>
+            </div>
+        </div>
+    </div>
+    <div id="psaStats" class="w3-modal">
+        <div class="w3-modal-content w3-animate-zoom">
+            <div class="w3-container">
+                <span onclick="document.getElementById('psaStats').style.display='none'" class="w3-button w3-display-topright">&times;</span>
+                <h1>PSAs</h1>
+                <p>PSAs better educate* the population of Germ City about the disease, and what can be done to stop it's spread. All PSAs cost $1500 to put out.</p>
+                <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="psaBOH">PSA: Benefits of Hygiene - $1500</button>
+                <p>The Benefits of Hygiene PSA slightly increases how frequently people wash their hands and use hand sanitizer - so people exposed to the disease have a smaller chance of becoming infected.</p>
+                <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="psaWAM">PSA: Wear a Mask & Socially Distance - $1500</button>
+                <p>The Wear a Mask & Socially Distance PSA increases the likelihood that someone wears a mask and obeys a lockdown order.</p>
+                <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="psaDOD">PSA: Dangers of Disease - $1500</button>
+                <p>The Dangers of Disease PSA increases awareness about the disease and it's dangers on the scale of the <em>general population</em>, not just the individual level.</p>
+                <p class="w3-small">*PSAs get less effective (25% less effectiveness per PSA) the more you use them - the first PSA about masks will be much more effective than the tenth.</p>
+            </div>
+        </div>
+    </div>
+    <div id="hospitalStats" class="w3-modal">
+        <div class="w3-modal-content w3-animate-zoom">
+            <div class="w3-container">
+                <span onclick="document.getElementById('hospitalStats').style.display='none'" class="w3-button w3-display-topright">&times;</span>
+                <h1>Hospital Stats</h1>
+                <p id="hospitalRooms"></p>
+                <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="addRoom">Create Hospital Room for $2000</button>
+                <br>
+                <p id="hospitalVentilators"></p>
+                <button class="w3-btn w3-border w3-round-xlarge styled-btn" id="addVentilator">Create Ventilator for $1000</button>
             </div>
         </div>
     </div>

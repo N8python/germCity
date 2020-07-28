@@ -27,6 +27,7 @@ function Person({
 }) {
     let thePath = [];
     let contentList = [];
+    let followedPolicies = [];
     let speed = 1;
     let target;
     let targetTick = 0;
@@ -36,6 +37,10 @@ function Person({
     let stageTimer;
     let testTimer;
     let testState = 0;
+    let wearingMask = false;
+    let decidedToWearMask = false;
+    let maskEfficiency = Math.random() * 0.5 + 0.25;
+    let workNextDay = true;
     let hospitalRoom;
     const name = lastName ? faker.name.firstName() + " " + lastName : faker.name.findName();
     const age = child ? getRndInteger(5, 18) : getRndInteger(19, 80);
@@ -46,8 +51,9 @@ function Person({
     } else {
         groceryStore = groceryStores[1];
     }
-    const hygieneChance = getRnd(0.00025, 0.001);
+    let hygieneChance = getRnd(0.00025, 0.001);
     let school;
+    let schoolDays;
     if (child) {
         if (age < 11) {
             school = schools[0];
@@ -55,6 +61,11 @@ function Person({
             school = schools[1];
         } else {
             school = schools[2];
+        }
+        if (Math.random() <= 0.5) {
+            schoolDays = ["Monday", "Wednesday"];
+        } else {
+            schoolDays = ["Tuesday", "Thursday"];
         }
     }
     let work;
@@ -109,7 +120,7 @@ function Person({
             interpretSchedule() {
                 const item = schedule[getHour() * 60 + getMinute()];
                 let prevMode;
-                if (item && mode !== "goToHospital" && mode !== "wanderHospital" && mode !== "headHomeHospital" && !item.done && (item.weekday ? isWeekday() : true) && (item.weekend ? !isWeekday() : true) && this.isSickCompatible(item.type)) {
+                if (item && mode !== "goToHospital" && mode !== "wanderHospital" && mode !== "headHomeHospital" && !item.done && (item.weekday ? isWeekday() : true) && (item.weekend ? !isWeekday() : true) && this.isSickCompatible(item.type) && this.isStaggerCompatible(item.type)) {
                     item.done = true;
                     prevMode = mode;
                     mode = item.type;
@@ -249,6 +260,18 @@ function Person({
                         } else if (isWeekday()) {
                             this.findPath(work, home);
                         }
+                    }
+                } else if (item && item.type === "checkGroceryStore" && mode !== "checkGroceryStore" && ((followedPolicies.includes("closeOffice") && work === office) || (followedPolicies.includes("closeSmallBusinesses") && work && work.isSmallBusiness))) {
+                    if (home.food === undefined && food < 100 && !groceryDone) {
+                        mode = "goToGroceryStore";
+                        this.findPath(home, groceryStore)
+                        target = home;
+                    } else if (groceryProvider && !groceryDone && (food < 0 || home.food < 400 || home.residents.some(({ food }) => food < 0))) {
+                        mode = "goToGroceryStore";
+                        this.findPath(home, groceryStore);
+                        target = home;
+                    } else {
+                        mode = "wander";
                     }
                 }
                 switch (mode) {
@@ -475,11 +498,21 @@ function Person({
                 }
             },
             refreshSchedule() {
+                followedPolicies = enactedLockdownPolicies;
                 Object.values(schedule).forEach(item => {
                     item.done = false;
                 })
                 groceryDone = false;
                 sayAtHomeForRestOfDay = false;
+                if (followedPolicies.includes("closeSmallBusinesses") && work && work.isSmallBusiness) {
+                    if (followedPolicies.includes("totalLockdown")) {
+                        workNextDay = false;
+                    } else {
+                        workNextDay = Math.random() < 1 - paranoia;
+                    }
+                } else {
+                    workNextDay = true;
+                }
                 if (sickState === 1) {
                     sickState = 2;
                 }
@@ -554,7 +587,28 @@ function Person({
                     contentList.push(cl);
                 }
             },
+            bumpHygiene(x) {
+                hygieneChance += random(0.0001, 0.0003) * x;
+            },
+            get hygieneChance() {
+                return hygieneChance;
+            },
             draw() {
+                const mult = maskMultiplier[maskStatus];
+                if (paranoia < scare.level * mult) {
+                    decidedToWearMask = true;
+                } else {
+                    decidedToWearMask = false;
+                }
+                if (decidedToWearMask) {
+                    if (mode === "wanderWork" || mode === "wanderSchool" || mode === "wanderGroceryStore" || mode === "lunchBreak" || mode === "wanderHouse") {
+                        wearingMask = true;
+                    } else {
+                        wearingMask = false;
+                    }
+                } else {
+                    wearingMask = false;
+                }
                 let color;
                 if (infected === -4) {
                     color = [125, 255, 125]
@@ -580,6 +634,15 @@ function Person({
                     textAlign(CENTER);
                     text("V", x, y);
                     rect(x, y - 10, 12, 5);
+                }
+                if (wearingMask) {
+                    stroke(200);
+                    strokeWeight(1);
+                    line(x - 5, y, x - 2.5, y)
+                    line(x + 5, y, x + 2.5, y)
+                    rectMode(CENTER);
+                    fill(200);
+                    rect(x, y, 5, 2.5);
                 }
                 targetTick--;
             },
@@ -749,6 +812,9 @@ function Person({
             get hospitalNum() {
                 return hospitalRoom[2];
             },
+            get followedPolicies() {
+                return followedPolicies;
+            },
             imcon() {
                 conTimer = 0;
             },
@@ -758,6 +824,18 @@ function Person({
                         return true;
                     }
                     return false;
+                }
+                return true;
+            },
+            isStaggerCompatible(_item) {
+                if ((followedPolicies.includes("staggerSchools") || followedPolicies.includes("closeSchools")) && child) {
+                    if (schoolDays.includes(dayOfTheWeek(getDay())) && !followedPolicies.includes("closeSchools")) {
+                        return true;
+                    }
+                    return _item === "nothing" || _item === "wander";
+                }
+                if ((followedPolicies.includes("closeOffice") && work === office) || (work && work.isSmallBusiness && workNextDay === false)) {
+                    return ["nothing", "wander", "checkGroceryStore"].includes(_item);
                 }
                 return true;
             },
@@ -923,9 +1001,10 @@ function Person({
                 if (contagious && infected > -2) {
                     const range = infected < 0 ? disease.initContagiousRange : disease.phases[infected].contagiousRange;
                     const chance = infected < 0 ? disease.initContagiousness * timespeed : disease.phases[infected].contagiousness * timespeed;
+                    const rangeReduction = wearingMask ? maskEfficiency : 1;
                     if (sickState === 2 && (mode === "nothing" || mode === "wander")) {
                         family.forEach(person => {
-                            if (dist(x, y, person.x, person.y) < range && person.infected === -3) {
+                            if (dist(x, y, person.x, person.y) < range * rangeReduction && person.infected === -3) {
                                 if (Math.random() < chance) {
                                     person.infected = -2;
                                 }
@@ -933,7 +1012,7 @@ function Person({
                         })
                     } else {
                         people.forEach(person => {
-                            if (dist(x, y, person.x, person.y) < range && person.infected === -3) {
+                            if (dist(x, y, person.x, person.y) < range * rangeReduction && person.infected === -3) {
                                 if (Math.random() < chance) {
                                     person.infected = -2;
                                 }

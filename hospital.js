@@ -46,6 +46,19 @@ function Hospital({
         get patients() {
             return patients;
         },
+        get maxCapacity() {
+            return maxCapacity;
+        },
+        set maxCapacity(val) {
+            maxCapacity = val;
+        },
+        get ventilators() {
+            return maxVentilators;
+        },
+        addVentilators(val) {
+            ventilators += val;
+            maxVentilators += val;
+        },
         canCheckIn() {
             return patients.length + 1 <= maxCapacity;
         },
@@ -87,8 +100,9 @@ function Hospital({
             }
         },
         renderStats() {
-            dashboard.innerHTML = "";
-            dashboard.innerHTML = `<h1>The ${name} Hospital</h1>`
+            dashboard.innerHTML = `<h1>The ${name} Hospital</h1>
+            <p>Rooms: ${maxCapacity}</p>
+            <p>Ventilators: ${maxVentilators}</p>`
         }
     }
 }

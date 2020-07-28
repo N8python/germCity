@@ -32,7 +32,8 @@ h4,
 h5,
 h6,
 p,
-span {
+span,
+label {
     font-family: inherit;
 }
 
@@ -72,27 +73,24 @@ span {
     /* Use half of the width (120/2 = 60), to center the tooltip */
 }
 
-#cashBoost {
+#cashBoost,
+#openTest,
+#openMask,
+#openLock,
+#openPSA,
+#openHospitalUpgrades {
     overflow: visible;
     overflow-x: visible;
     overflow-y: visible;
     display: block;
 }
 
-#openTest {
-    overflow: visible;
-    overflow-x: visible;
-    overflow-y: visible;
-    display: block;
-}
-
-#cashInfusionTool {
-    width: 270px;
-    padding-left: 16px;
-    padding-right: 16px;
-}
-
-#openTestTool {
+#cashInfusionTool,
+#openLockTool,
+#openTestTool,
+#openMaskTool,
+#openPSATool,
+#hospitalUpgradeInfo {
     width: 270px;
     padding-left: 16px;
     padding-right: 16px;
